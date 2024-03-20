@@ -1,0 +1,780 @@
+8/3/24
+======
+Multipass docs:https://multipass.run/docs/how-to-guides
+Installing multipass:
+=====================
+1.check if snap is available: cmd: snap
+
+2.Install multipass : sudo snap install multipass
+
+3.cmd:ls -l /var/snap/multipass/common/multipass_socket
+    output:srw-rw---- 1 root sudo 0 Mar  8 10:39 /var/snap/multipass/common/multipass_socket
+    ->-l gives detailed information.
+    ->srw-rw---- meaning is s indicates socket file rw means read/write permission for root and null for others.
+
+4.groups | grep sudo
+    Explanation: groups lists all the groups of current user. grep sudo will check for sudo in previous command's output and highlight it.
+    output:rishikeshb adm cdrom sudo dip plugdev lpadmin lxd sambashare docker
+
+5.snap info multipass - will give info about multipass.
+    output:
+    name:      multipass
+    summary:   Instant Ubuntu VMs
+    publisher: Canonical**
+    store-url: https://snapcraft.io/multipass
+    contact:   https://github.com/canonical/multipass/issues/new
+    license:   GPL-3.0
+    description: |
+    Multipass is a tool to launch and manage VMs on Windows, Mac and Linux that
+    simulates a cloud environment with support for cloud-init. Get Ubuntu
+    on-demand with clean integration to your IDE and version control on your
+    native platform.
+    
+    Launch an instance (by default you get the current Ubuntu LTS)
+    
+        multipass launch --name foo
+    
+    Run commands in that instance, try running bash (logout or ctrl-d to quit)
+    
+        multipass exec foo -- lsb_release -a
+    
+    Pass a cloud-init metadata file to an instance on launch
+    
+        multipass launch -n bar --cloud-init cloud-config.yaml
+    
+    See your instances
+    
+        multipass list
+    
+    Stop and start instances
+    
+        multipass stop
+        multipass start
+    
+    Get help
+    
+        multipass help
+    commands:
+    - multipass.gui
+    - multipass
+    services:
+    multipass.multipassd: simple, enabled, active
+    snap-id:      mA11087v6dR3IEcQLgICQVjuvhUUBUKM
+    tracking:     latest/stable
+    refresh-date: today at 10:39 IST
+    channels:
+    latest/stable:    1.13.1                    2024-02-12 (11732) 122MB -
+    latest/candidate: 1.13.1                    2024-03-07 (11967) 122MB -
+    latest/beta:      1.13.1                    2024-02-12 (11732) 122MB -
+    latest/edge:      1.14.0-dev.1536+g2bf881fd 2024-03-05 (11946)  67MB -
+    installed:          1.13.1                               (11732) 122MB -
+
+->cmd: multipass for all the commands available in multipass.
+
+Uninstall multipass:
+=====================
+->snap remove multipass
+
+Creating an instance:
+=====================
+1)1st way: Multipass GUI
+->open multipass app and click multipass icon on right top tray and click on shell. It creates a new instance named primary with 1gb ram and 1 cpu and 5 gb of disk space.
+
+2)2nd way: multipass launch
+->It also creates a instance with random name with 1gb ram,1 cpu and 5 gb of storage.
+ex:multipass launch
+Launched: right-verdin
+
+    Ex:multipass info right-verdin
+    Name:           right-verdin
+    State:          Running
+    Snapshots:      0
+    IPv4:           10.94.51.18
+    Release:        Ubuntu 22.04.4 LTS
+    Image hash:     fa2146bb04e5 (Ubuntu 22.04 LTS)
+    CPU(s):         1
+    Load:           0.37 0.18 0.07
+    Disk usage:     1.6GiB out of 4.8GiB
+    Memory usage:   182.4MiB out of 951.9MiB
+    Mounts:         --
+
+3) Creating an instance with specific image with everything custom
+
+cmd:multipass find
+    ->lists all the available image
+
+cmd: multipass launch <alias_name/versionNO> --name <custom_name> --cpus <No.0f.cpus(4)> --memory <8G> --disk <size in G> primary(optional);
+
+->multipass delete <instance_name> - to delete an instance.
+->multipass purge <instance_name> - to remove from the list.
+
+Modify an instance:
+===================
+
+->After creation of the instance, we can modify them by two ways:
+    ->set the CPU, RAM or disk of the instance.
+    ->set the instance as primary.
+
+SSH:= secure socket shell.
+====
+
+->ssh protocol is a method for securely sending commands to a computer over an unsecured network.
+->ssh uses cryptography to authenticate and encrypt connections between devices.
+
+->TCP/IP - https://www.cloudflare.com/en-gb/learning/ddos/glossary/tcp-ip/
+
+->How IP address work -
+IPV4 - 32 bit.
+IPV6 - 128 bit.
+
+static IP:
+These ip don't change over time.
+
+dynamic IP:
+->Assigning a temporary ip for a time by ISP from a shared pool of ip's.
+
+what is ssh?
+ans:
+https://www.cloudflare.com/en-gb/learning/access-management/what-is-ssh/
+
+passwd for ubuntu18LTS = ubuntu18 
+passwd for ubuntu22LTS = ubuntu22 
+
+How to connect two linux machines using ssh keys:
+============================================
+https://automateinfra.com/2021/02/25/how-to-connect-two-linux-machines-using-ssh-keys/
+
+
+ubuntu 18 keypair gen:
+=======================
+ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/ubuntu/.ssh/id_rsa): 
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /home/ubuntu/.ssh/id_rsa.
+Your public key has been saved in /home/ubuntu/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:q73NxLYxuSuXAXznKTCWnSvVzeLzTgKKJuU+6g5+rxw ubuntu@ubuntu18LTS
+The key's randomart image is:
++---[RSA 2048]----+
+|                 |
+|                 |
+|       . o o o   |
+|        B = + o  |
+|      ..S*.= o   |
+|     o ..++o=    |
+|  . E + o.B+.o.  |
+| . o.=.o.=o= o.  |
+|  .+*++.o+*. ..  |
++----[SHA256]-----+
+
+ubuntu 22 keypair gen:
+======================
+ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/ubuntu/.ssh/id_rsa): 
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /home/ubuntu/.ssh/id_rsa
+Your public key has been saved in /home/ubuntu/.ssh/id_rsa.pub
+The key fingerprint is:
+SHA256:rD/O91ZyKBSpSlnZiGG+fJ9Buwai25NOfPiIVEk2WPE ubuntu@ubuntu22LTS
+The key's randomart image is:
++---[RSA 3072]----+
+|      =+ + .     |
+|     =..+ +      |
+|    . =oE...     |
+|     +o=....     |
+|     .*.S.o  .   |
+|     +.= o.+o o  |
+|    o =.. =. +   |
+|   . =o*... .    |
+|    o.+o=o o.    |
++----[SHA256]-----+
+
+SSH:
+->ssh is used to access another remote machine in local machine.
+
+->For ssh to work,
+    1->Generate ssh-keygen for the source.
+    2->place the public-key of the source in the destination's authorized key
+    ->Access by this cmd: ssh ubuntu<user-name>@ip
+
+SSH port forward/thunneling:4
+
+    1.Follow the first 2 steps from the above.
+    2.In the receiver's side, use this cmd: ssh -L 3001:localhost:80 ubuntu@188.17.0.5
+
+scp: copies file between two networks
+
+Method 1:scp srinath@192.168.1.26:/home/srinath/my_practice/JavaScript.pdf .
+scp <Source@IP>:<source_folder> <destination_folder>
+
+Method 2:scp array.js rishikeshb@192.168.1.63:.
+scp <fromhere_file> destination@IP .
+
+
+Git:
+===
+
+->Git config:
+=============
+
+=>These configurations can be applied globally, per user, or per repository basis.
+
+To check config details:-> git config --list --show-origin
+
+To set username and email:
+$ git config --global user.name "John Doe"
+$ git config --global user.email johndoe@example.com
+
+To set main as the default branch name do:
+
+$ git config --global init.defaultBranch main
+
+getting help:
+============
+
+cmd:
+$git <verb> --help = for long manual page.
+$git <verb> -h= for short helping hand.
+
+
+ways to start git:
+==================
+1. git clone from existing repo= git clone <url> <destination if any>
+2. initialization of folder.=git init .
+
+Recording changes to the repository:
+======================================
+
+->Tracked files are files git knows about.
+->Untracked files are files that git doesn't know about.
+e.g: A folder with no vcs.
+
+git status => to check the state of the files in the git.
+
+skipping the staging area:
+==========================
+->git commit -a -m "the staging is skipped"
+
+Removing files:
+===============
+
+=>git rm file - It will remove the file from the repo as well as working directory. and the changes will be in staged area, we have to commit it.
+
+=>If you modified the file or had already added it to the staging area, you must force the removal with the -f option. This is a safety feature to prevent accidental removal of data that hasn’t yet been recorded in a snapshot and that can’t be recovered from Git.
+
+To remove only from the repo but not locally:
+
+git rm --cached Readme
+
+Moving Files:
+==============
+Unlike many other VCSs, Git doesn’t explicitly track file movement. If you rename a file in Git, no metadata is stored in Git that tells it you renamed the file. However, Git is pretty smart about figuring that out after the fact — we’ll deal with detecting file movement a bit later.
+
+$ git mv file_from file_to
+
+viewing the commit history:
+===========================
+
+
+Git Task:
+========
+two common repo, diff branch.
+->ssh key authenticate
+history read/write, hard reset,merge conflict, merge, workflow setup.
+
+Bit Bucket:
+===========
+
+1.Workspace.
+2.Creating workspace.
+3.Updating the workspace.
+4.Inviting people to workspace.
+5.Adding a group to workspace.
+6.Adding user access and permissions for repository.
+7.
+
+Cloning an repo:
+===============
+ssh:
+===
+1.Add your pubkey into repo access key place.
+2.Then clone using ssh.
+
+http:
+=====
+1.Install git credential manager:
+https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/install.md
+
+//create a app password and set it to helper cache
+git config credential.helper cache
+
+
+//don't use this 
+2.set up credential store:
+git config --global credential.credentialStore gpg
+
+3.set up a pass store:
+pass init <gpg-id> // gpg-id(random-my id is:)=25012003
+
+4.gpg --full-generate-key
+    gpg (GnuPG) 2.2.27; Copyright (C) 2021 Free Software Foundation, Inc.
+    This is free software: you are free to change and redistribute it.
+    There is NO WARRANTY, to the extent permitted by law.
+
+    Please select what kind of key you want:
+    (1) RSA and RSA (default)
+    (2) DSA and Elgamal
+    (3) DSA (sign only)
+    (4) RSA (sign only)
+    (14) Existing key from card
+    Your selection? 1
+    RSA keys may be between 1024 and 4096 bits long.
+    What keysize do you want? (3072) 
+    Requested keysize is 3072 bits
+    Please specify how long the key should be valid.
+            0 = key does not expire
+        <n>  = key expires in n days
+        <n>w = key expires in n weeks
+        <n>m = key expires in n months
+        <n>y = key expires in n years
+    Key is valid for? (0) 
+    Key does not expire at all
+    Is this correct? (y/N) y
+
+    GnuPG needs to construct a user ID to identify your key.
+
+    Real name: Rishikesh
+    Email address: rishikesh.b@codingmart.com
+    Comment: bitbuckethttpclone
+    You selected this USER-ID:
+        "Rishikesh (bitbuckethttpclone) <rishikesh.b@codingmart.com>"
+
+    Change (N)ame, (C)omment, (E)mail or (O)kay/(Q)uit? O
+    We need to generate a lot of random bytes. It is a good idea to perform
+    some other action (type on the keyboard, move the mouse, utilize the
+    disks) during the prime generation; this gives the random number
+    generator a better chance to gain enough entropy.
+    We need to generate a lot of random bytes. It is a good idea to perform
+    some other action (type on the keyboard, move the mouse, utilize the
+    disks) during the prime generation; this gives the random number
+    generator a better chance to gain enough entropy.
+    gpg: key BEFEC50FFBB08338 marked as ultimately trusted
+    gpg: directory '/home/rishikeshb/.gnupg/openpgp-revocs.d' created
+    gpg: revocation certificate stored as '/home/rishikeshb/.gnupg/openpgp-revocs.d/537EACF965CB725CA54815C1BEFEC50FFBB08338.rev'
+    public and secret key created and signed.
+
+    pub   rsa3072 2024-03-12 [SC]
+        537EACF965CB725CA54815C1BEFEC50FFBB08338
+    uid                      Rishikesh (bitbuckethttpclone) <rishikesh.b@codingmart.com>
+    sub   rsa3072 2024-03-12 [E]
+    passphrase:wantedbyme
+
+    5.gpg --export --armor rishikesh.b@codingmart.com
+    -----BEGIN PGP PUBLIC KEY BLOCK-----
+
+    mQGNBGXwHYEBDADVSfKcKgsHHTFGu6BmzTzgI73Nk91fN6Lm7mne0+AS5CEdC6yh
+    6eVhmszVYVzeF/o/8ywZ6lwa7hwRPdY93IwdBPgJazJB6qeiA2bBOFjgtmdZx1yc
+    dfkxCVQCtJ1vzJtOKTGMX3Y0ydU2/6ytEZJcPBrF6kuse2lgvzKOvPudtarckvkZ
+    u7HwpbeHHRpcq7zp0vyi0E9sUNIgBGNCVA++ShFywmEDCSHG9KBf4wuQoukN5rdH
+    XH+jYFp18UFx+4qrHTHnRP+IzyXMYrBgniZtWmvkwyswvpfE5mVUjZ2QJ6mkEb1T
+    9cLXcPQ80OhewWb8F0LPdl4FZHfpSbIunuivMWA2cZiLT/4OZzvXRNAvYyTCTHbw
+    zu76baiGc6AXXS88R/PNrw05fyMEsN2dVbe8KWS2cKNdh/gbG429N2x81JE0XGJM
+    63A8nJzfZA4xrKZ8CnA1t0DuqBrO79fs4yPCEQlnHtaGRG/t7U4gjorA8Sbt2rzZ
+    xHSVv/FMF9K58icAEQEAAbQ7UmlzaGlrZXNoIChiaXRidWNrZXRodHRwY2xvbmUp
+    IDxyaXNoaWtlc2guYkBjb2RpbmdtYXJ0LmNvbT6JAc4EEwEKADgWIQRTfqz5Zcty
+    XKVIFcG+/sUP+7CDOAUCZfAdgQIbAwULCQgHAgYVCgkICwIEFgIDAQIeAQIXgAAK
+    CRC+/sUP+7CDOCYDDAClfSPj4SRvWQ4WNR1cYu4u2pfVaKhOkpaT2fQGRt0EtxQo
+    t9FN8yDauuEdU1YRc4D9RH2gXzWEn/xLc/kJ0o+YpXYcleI+zMcv+5uQTvx7TMCklpf
+    JPRVDeGmFUbQHtT1N8AbMJYk/bdU74cSVf0ONfw4DplJ5riQ6qd2zfTFM9KX+Dft
+    o27lJVnrtiWhH1/NrROTzcEn+pax9R+fsYzOKIQmAZjxCXiLja4SPpiSLazRLNPn
+    CmdbnicwXfGSeMZapWqMMHswUmkNuzTpvc2FE0pK55KFfEsFLX6eZEuSVv5y/ckQ
+    qyioa2BR77Z8GMHeQo44OjcxCYc2wpQ8ozQ4a7HniPrKsjCMmvbmE67UP9i6hPmC
+    9y23jTMkEN407RfsZSIt7pfa2rjTmfnlzDhBoEHolodNY+KeSFrf/dtodDe8SvGp
+    KRnXx6y4L9R6x23okj62QTDALxUC1AY+OcfpJhp9pbnIKO6u/qPSrSF1OlzpBQxN
+    RsAB23I5J2gRC+x1z5C5AY0EZfAdgQEMALVExOFVxOc4nr4NVEcsMVqQVWsy47i2
+    UyDTwbt9daLKvxhaViC89umVUetnC+K3V+yk1b7Gds93GDa3Rh/KQyZDCvcoIh/2
+    h68AdgGOzqh8GSMpN1CP675jDNvo2XfRGqP7oMBI6m+B9U4AzGGt3oAyt7n7+gTf
+    0fdMlYk8CDbb75ocW7Q7a/w3lNM2v/n2i8ZfYwFxzWN64ogt9wjPRLCjKbtWoOa9
+    qjgFqfaJr55W2Y3dXVBDSr24AN6W6LAO45FISIRsoKK/SB7e8OAvlC5twtzKsdqs
+    pyTfIn80SUc8A4uczOqqtVqWU/bo3dH59lRkMZXfAFulq6nYlToJYy/WO7ssFCdq
+    qzV8+tbJDm/aSzX6+TfGDD94qwOaOs8OTN8u9aWvEa8uwKEvofbEbHoNL/T3B0js
+    shAYfNqMDFszZ/z7BFFYOJerQW1TPFMFcW7tunEB7wK7viWuH8JtZ06oa8xbsHQQ
+    x6qDDdLI9pZTB31o1D4CuXevHTGhXRZgXwARAQABiQG2BBgBCgAgFiEEU36s+WXL
+    clylSBXBvv7FD/uwgzgFAmXwHYECGwwACgkQvv7FD/uwgzj7TQv+MNsKjmx3b9s4
+    Hqr2l8kDFduWAh5/7hCfhulQ3tXAOaz1zskDeYdjZoYzOdEjiPPGqJUbsxLWTRSo
+    DqGjHawiCPy7iRZFsTAqQfd8AmOFKVYJRWn85Orx7L/MHppak45n0c2Gy4wDfQcT
+    TWcdUhZkPRt7US7Xi3QSwHUCmjyZoMixZYblXd0MUYIpf3uH76qYNovnAVO8B+95
+    +SBqOuBnle4F5iFJah0LsTb9IMY/RL9B++7nEgTydws5PcVUNEYyhLCSCA5XRfKs
+    xZQmN6aKkgROHhCI/PChi09uL6vnF7NRFzdKy1z94pSQ7362BssWhz0gMz5E1cSP
+    O9DUw/x3yKeDUNyRltHM6qWC9HdnuC/8H9SJLTIuztGdenylu/JgyUGcPmAYFZTe
+    5PAasRWvWv+Rwy7YHEB/g9Ju5/JfOyBZRWzAHrc+MoeN9zRJHStEOJhRWd/Q4b8T
+    g+s8Mrx5cG/dHh8idOPP8kRiu0iELd+TSaM5lLO681Onnk0zWpWX
+    =Rlor
+    -----END PGP PUBLIC KEY BLOCK-----
+
+branch:https://www.w3docs.com/snippets/git/how-to-create-a-remote-branch-in-git.html#pushing-a-local-branch-to-remote-9
+
+Git merge conflict:
+git checkout main
+Switched to branch 'main'
+Your branch is ahead of 'origin/main' by 1 commit.
+  (use "git push" to publish your local commits)
+srinath@srinath-Latitude-3520:~/my_practice/merge/mergeconflictrepo$ git merge sribranch 
+Updating ca2e19f..dd2889a
+Fast-forward
+ trial.txt | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 trial.txt
+srinath@srinath-Latitude-3520:~/my_practice/merge/mergeconflictrepo$ git commit -m "trialm"
+On branch main
+Your branch is ahead of 'origin/main' by 2 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+srinath@srinath-Latitude-3520:~/my_practice/merge/mergeconflictrepo$ git add .
+srinath@srinath-Latitude-3520:~/my_practice/merge/mergeconflictrepo$ git commit -m "trialm"
+On branch main
+Your branch is ahead of 'origin/main' by 2 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+srinath@srinath-Latitude-3520:~/my_practice/merge/mergeconflictrepo$ git push
+To bitbucket.org:learn-cm-devops/mergeconflictrepo.git
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'bitbucket.org:learn-cm-devops/mergeconflictrepo.git'
+hint: Updates were rejected because the remote contains work that you do
+hint: not have locally. This is usually caused by another repository pushing
+hint: to the same ref. You may want to first integrate the remote changes
+hint: (e.g., 'git pull ...') before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+srinath@srinath-Latitude-3520:~/my_practice/merge/mergeconflictrepo$ git config pull.rebase true
+srinath@srinath-Latitude-3520:~/my_practice/merge/mergeconflictrepo$ git pull
+remote: Enumerating objects: 9, done.
+remote: Counting objects: 100% (9/9), done.
+remote: Compressing objects: 100% (6/6), done.
+remote: Total 7 (delta 2), reused 0 (delta 0), pack-reused 0
+Unpacking objects: 100% (7/7), 627 bytes | 313.00 KiB/s, done.
+From bitbucket.org:learn-cm-devops/mergeconflictrepo
+   26a54dd..6a921fd  main        -> origin/main
+ * [new branch]      rishiBranch -> origin/rishiBranch
+Auto-merging hello.txt
+CONFLICT (add/add): Merge conflict in hello.txt
+error: could not apply ca2e19f... sri2
+hint: Resolve all conflicts manually, mark them as resolved with
+hint: "git add/rm <conflicted_files>", then run "git rebase --continue".
+hint: You can instead skip this commit: run "git rebase --skip".
+hint: To abort and get back to the state before "git rebase", run "git rebase --abort".
+Could not apply ca2e19f... sri2
+srinath@srinath-Latitude-3520:~/my_practice/merge/mergeconflictrepo$ git add hello.txt trial.txt
+fatal: pathspec 'trial.txt' did not match any files
+srinath@srinath-Latitude-3520:~/my_practice/merge/mergeconflictrepo$ git add hello.txt
+srinath@srinath-Latitude-3520:~/my_practice/merge/mergeconflictrepo$ git rebase --continue
+[detached HEAD 1e68dac] sri3
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+Successfully rebased and updated refs/heads/main.
+srinath@srinath-Latitude-3520:~/my_practice/merge/mergeconflictrepo$ git commit -m "rebased"
+On branch main
+Your branch is ahead of 'origin/main' by 2 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+srinath@srinath-Latitude-3520:~/my_practice/merge/mergeconflictrepo$ git add .
+srinath@srinath-Latitude-3520:~/my_practice/merge/mergeconflictrepo$ git commit -m "rebased"
+On branch main
+Your branch is ahead of 'origin/main' by 2 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+srinath@srinath-Latitude-3520:~/my_practice/merge/mergeconflictrepo$ git push
+Enumerating objects: 8, done.
+Counting objects: 100% (8/8), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (6/6), 570 bytes | 570.00 KiB/s, done.
+Total 6 (delta 1), reused 0 (delta 0), pack-reused 0
+To bitbucket.org:learn-cm-devops/mergeconflictrepo.git
+   6a921fd..46390d1  main -> main
+srinath@srinath-Latitude-3520:~/my_practice/merge/mergeconflictrepo$
+
+13/3/24
+branch restrictions:
+==================
+
+https://support.atlassian.com/bitbucket-cloud/docs/configure-a-projects-branch-restrictions/
+
+1.Branch restrictions with branch conflict and resolve, reviewers.
+2.git revert, reset --hard --soft --mixed.
+3.Branch restrictions for push --force.
+
+ssh protecting by firewall:
+1.ufw package method: https://help.ubuntu.com/community/UFW
+    ubuntu@ubuntu22LTS:~$ sudo apt-get install ufw
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    ufw is already the newest version (0.36.1-4ubuntu0.1).
+    ufw set to manually installed.
+    0 upgraded, 0 newly installed, 0 to remove and 7 not upgraded.
+    ubuntu@ubuntu22LTS:~$ sudo ufw enable
+    Command may disrupt existing ssh connections. Proceed with operation (y|n)? y
+    Firewall is active and enabled on system startup
+    ubuntu@ubuntu22LTS:~$ sudo ufw allow from 10.94.51.45
+    Rule added
+    ubuntu@ubuntu22LTS:~$ sudo ufw reload
+    Firewall reloaded
+    ubuntu@ubuntu22LTS:~$ sudo ufw status
+    Status: active
+
+    To                         Action      From
+    --                         ------      ----
+    Anywhere                   ALLOW       10.94.51.45     
+
+Install archLinux in virtual box on ubuntu:
+==============================================
+
+1.Install virtual box:
+======================
+
+14/3/24 =nvim+nvchad:
+=====================
+nvchad = https://nvchad.com/docs/quickstart/install/
+neovim = https://github.com/neovim/neovim/releases
+
+homebrew installation:https://www.how2shout.com/linux/install-brew-on-ubuntu-22-04-lts-jammy-linux/
+
+Docker:
+=======
+
+1.create a docker file
+steps:
+    FROM node:20
+    WORKDIR /app
+    COPY . .
+    RUN npm i
+    CMD ["npm", "run", "dev"]
+    EXPOSE 5173
+2.sudo systemctl start docker = start the docker engine otherwise open docker desktop.
+
+3.Build an docker image:
+cmd: docker build -t ex5img . (this img name should be lowercase)
+
+4.Create a container:
+
+15/3/24
+Docker tutorial:
+===============
+
+=>Docker uses container to run a project in an isolated environment.
+
+=>Normally, if a developer develops a project, they install several libs(i.e dependencies). so if someone who need to simulate the project, they have to install all the dependencies which is not fesible.
+
+=>So in docker, there is a container which already has all the necessary dependencies, the users can just run the image without needing to install them.
+
+Installing Docker:
+==================
+
+1.Install docker desktop or only engine on linux.
+
+Docker Images:
+=============
+
+1.It is blueprint for containers.
+
+    ->It contains,
+        ->Runtime environment,
+        ->App code.
+        ->Any dependencies
+        ->Extra configurations
+        ->Commands.
+
+    ->It is immutable meaning we can't edit the image after its creation.
+    ->It contains everything we need to run our code.
+
+Docker Container:
+=================
+->Runnable instance of an image.
+->Completely isolated.
+
+Docker Images:
+=============
+
+=>Images are made up from several "layers"
+
+Image:
+3.dependencies
+2.Source code
+1.Parent image
+
+1.Parent image: this parent image can be node,python etc.we can pull the image from the docker hub and use it in our code.
+
+Installing docker engine on 24.04:
+https://linuxconfig.org/quick-docker-installation-on-ubuntu-24-04
+
+1.dockerignore
+
+->Layer caching:
+================
+->Every line in docker file is a layer.
+
+->So on building an image, the image does all the process first time but it checks if there is a same layer already available upon available it is cached.
+
+->so if a layer is new, it is pulled .
+
+->If just a layer changes, the lines above that are cached, the lines below that are downloaded again.
+
+
+Image pushing:
+=============
+
+1.create a account with docker hub.
+2.create a repository.
+3. syntax: docker push <your-user-name>/myapp
+4.Login into to your docker hub.
+    docker login -u YOUR-USER-NAME
+5.But there should be a img locally in this format:
+    <your-user-name>/imgname
+    ->to do that 
+        ->docker tag <old img name> <new img name(rishikeshb/myapp)>
+
+6.docker push <your-username>/<img_name>
+
+Run a image from hub:
+
+1.docker run -dp 0.0.0.0:3000:3000 YOUR-USER-NAME/getting-started
+
+volume:
+=======
+
+=>Generally when a code changes, then we have to rebuilt an image, then start container with it. 
+
+=>Volume is like mapping the a folder in local to the folder in the container, so whenever a folder changes, the container's folder also changes.
+
+=>we can use nodemon to restart the server.
+
+set up process:
+===============
+
+1. Instead of npm run , in package.json add dev in script with nodemon.
+2. use run "npm install -g nodemon" on dockerfile and npm run dev on it.
+3. while run a container use -v flag with <localPath>:/app 
+
+volume mount --- persist the db:
+===============
+1.create a new volume:
+docker volume create <vol-name>
+
+2.While running the container, use --mount type=volume,src=<vol-name>,target=/etc/todos <img-name>
+->here target is inside the container.
+
+3.we can delete the container and create a new one and mount the volume and the data will persist.
+
+
+Bind Mount:
+===========
+=>volume mount is used when we need a persistent place to store our data.
+=>A bind mount is another type of mount, which lets us to share the host's filesystem into a container.
+=> --mount type=bind,src=<bind_folder_local>,target=<container-folder>
+=> -v <localpath>:<targetPath>
+
+docker compose:
+==============
+
+1.when we have to run multi container or multi images.
+
+2.Create a docker-compose.yaml file 
+like this:
+    version: "3.8"
+    services:
+    myapp:
+        build: ./myapp
+        container_name: myapp-c 
+        ports:
+        - '3000:3001'
+        volumes:
+        - ./myapp:/app
+        - /app/node_modules
+
+3.run docker compose up
+
+docker dev environment:
+=======================
+=requirements:
+1.docker file
+2.docker compose file.
+
+method-1:
+=>Create a image,container,compose file
+=>docker compose run --rm -d --service-ports openjdkenv
+=>for shell: docker exec -it <container_id> sh
+
+Docker compose:
+===============
+
+=>compose v1 needs top level version in compose.yaml file. and it used docker-compose command.
+=>compose v2 don't need version on top of compose.yaml file. and it uses docker compose command.
+
+compose plugin vs compose standalone:
+=====================================
+
+=>
+
+
+
+20/3/24:
+web vs application server:
+https://aws.amazon.com/compare/the-difference-between-web-server-and-application-server/
+Web server:
+==========
+-> a server that hosts websites.
+->Runs web server software like apache http, IIS(microsoft),...
+=>Connected to internet
+->simple page,static,protocol(ftp,http,smtp);
+->doesn't support multi-threading.
+=>It display the content as-if it is stored on the server.
+
+
+Application server:
+===================
+->Does complex work,dynamic pages,protocol(ftp,http,smtp,rmi,rpc)
+->supports multi-threading.
+=>It has few template and dynamically loads data for the content.
+
+
+web server:
+https://developer.mozilla.org/en-US/docs/Learn/Common_questions/Web_mechanics/What_is_a_web_server
+
+Nginx:
+======
+=>Install using sudo apt install nginx.
+=>Two folder:
+/etc/nginx/sites-enabled/default contains config file
+/var/www/html contains default page(index.html)
+=>on every config change, reload by systemctl nginx
+=>On the same network, we can use ip of the server for checking.
+
+1.A react app on nginx:
+=======================
+
+1.create a react app.
+2.run "npm run build"
+3.then copy the build content to another folder.(/var/www/html/app)
+4.In the config file:
+    ->write a location block with /static/
+    location /static/ {
+        alias <path to build static folder>
+    }
+    location /app{
+        try_files $uri /index.html;
+    }
+5.reload nginx;
+
+6.To check if nginx conf is successful:
+sudo nginx -t;
+
+7.A server block can listen for only one ip:port.
+
+8.we can write as many conf file inside /etc/nginx/conf.d/ but it should follow 7th point here.

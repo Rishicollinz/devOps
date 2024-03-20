@@ -1,0 +1,10 @@
+version: "3.8"
+services:
+  myapp:
+    build: ./myapp
+    container_name: myapp-c 
+    ports:
+      - '3000:3001'
+    volumes:
+      - ./myapp:/app
+      - /app/node_modules
