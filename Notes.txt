@@ -487,7 +487,7 @@ srinath@srinath-Latitude-3520:~/my_practice/merge/mergeconflictrepo$ git commit 
 On branch main
 Your branch is ahead of 'origin/main' by 2 commits.
   (use "git push" to publish your local commits)
-
+dd
 nothing to commit, working tree clean
 srinath@srinath-Latitude-3520:~/my_practice/merge/mergeconflictrepo$ git push
 Enumerating objects: 8, done.
