@@ -721,9 +721,88 @@ compose plugin vs compose standalone:
 =====================================
 
 =>
+Docker network:
+===============
 
+=>docker network ls => will list all the current docker network.
 
+1.Bridge network:
+===================
 
+->Default.
+=>Driver=network type.
+=>Each container in bridge network will have its own ip.
+=>It will take the config file from the host (docker 0);
+=>Each container will have virtual ethernet.
+
+Problem with bridge network:
+============================
+=>It wont automatically expose the services(port) running on the container.
+=>While running the container, we have to specify the -p flag for the port publish.
+
+2.User-defined bridge:
+======================
+=>ip address show =>to see all the ip's in the machine.
+
+->cmd : docker network create <name> =>to create a new network.
+
+->cmd: while running the container, "--network <network_name>" to set a network to a container.
+
+->cmd: bridge link => to see the container link to a network.
+
+->we can connect two containers in the same network but we can't ping two containers in differnet network.
+
+Adv:
+===
+1.It automatically dns the ip of the container in its network based on the name of the container.
+
+3.Host network:
+===============
+
+cmd: docker run --network host
+
+=>the container will attach to host network, no port forwarding,
+just ip and port of the direct host.
+
+=>No isolation here.
+
+4.MacVLan:
+==========
+=>It connects the container like a vm to the network.
+=>There is no docker between the container and machine.
+
+cmd: sudo docker network create -d macvlan --subnet <home_ip> --gateway 10.7.1.3 -o parent=enp0s3 <network-name>
+
+to run cont:
+docker run --ip <we have to give ip>
+=>Each container will have own mac and ip.
+Problem:
+========
+->It connects directly to the network but it has different mac address, we can't access the container on machine without promiscuous mode.
+
+modes:
+i)bridge
+ii)802.1q 
+
+5.IPVlan:
+modes:
+i)L2 =>It connects to the system,so same mac address but ip address will connect to network directly, so different container will have different IPs.
+cmd: network create:
+sudo docker network create -d ipvlan --subnet 10.7.1.0./24 --gateway 10.7.1.3 -o parent=enp0s3 newsgard
+cmd: container run: docker run -itd --rm --network newasgard --ip 10.7.1.92 --name <name>
+ii)L3 : here the containers will connect to the host network but there is no layer 2, it's all layer 3. 
+->The network will have its own ip.
+->we will connect with the host like its a router.
+
+->To reach the container, we have to go via the host.
+
+cmd:docker network create -d ipvlan --subnet <ip> (no_gataway) -o parent=enp0s3 -o ipvlan_mode=l3 --subnet <ip> <name>
+->when different container in different subnet share a same host, it can talk with eachother.
+
+6.Overlay= it is a config which says which container can talk to which one.
+
+7.None network(security):
+it has no ip address, only loopback.
 20/3/24:
 web vs application server:
 https://aws.amazon.com/compare/the-difference-between-web-server-and-application-server/
@@ -771,10 +850,92 @@ Nginx:
         try_files $uri /index.html;
     }
 5.reload nginx;
-
 6.To check if nginx conf is successful:
 sudo nginx -t;
 
 7.A server block can listen for only one ip:port.
 
 8.we can write as many conf file inside /etc/nginx/conf.d/ but it should follow 7th point here.
+
+2. A vite app on nginx:
+
+i)FROM node:latest as BUILD_IMAGE
+
+WORKDIR /app/viteapp
+
+COPY package.json .
+
+RUN npm install
+
+COPY . .
+
+RUN npm run build 
+
+#production image
+
+FROM node:latest as PRODUCTION_IMAGE
+
+WORKDIR /app/viteapp
+
+COPY --from=BUILD_IMAGE /app/viteapp/dist/ /app/viteapp/dist/
+
+EXPOSE 8080
+
+COPY package.json .
+
+COPY vite.config.js .
+
+RUN npm install
+
+CMD [ "npm","run","preview" ]
+
+ii)remaining same as vite app.
+
+express->dockerize
+
+https://its-amit.medium.com/how-to-make-build-for-express-js-node-js-using-webpack-and-deployment-on-docker-9cd219ba24a2
+
+26/3/24:
+========
+Task : Full deployment:
+refer:./aFullEnvDep
+
+1.VITE->Dockerize with nginx->Run via local nginx; src=vite4/
+==================================================
+
+=>Creation: npm create vite <app-name>;
+=>A multi stage image with node build(part 1) and nginx deploy(part 2);
+=>A conf.d folder and bind mount this to image
+
+2.Backend(express)->Dockerize with nginx ->Run via local nginx: src=back2/
+=============================================================
+
+=>creation: index.js , express package install via npm, package.json
+
+=>npm -g i webpack
+
+=>npm  i webpack webpack-cli --save-dev
+
+=>a webpack.config.file with configuration.
+
+=>build:webpack in package.json script
+
+=>npm run build
+
+=>Multi step image with both as node.
+
+=>run this dist with node ./dist/final.js
+
+3.DB(mysql)->Dockerize->view the volumes:
+=========================================
+
+1.A sql file with data creation.
+2.a dockerfile:
+    ->mysql latest image
+    ->env variable with mysql_root_password:root
+    ->COPY ./stud.sql /docker-entrypoint-initdb.d/
+    ->A new volume which mounts this /docker-entrypoint-initdb.d/
+
+4.A overall config compose file with all these separate containers:
+======================================================================
+

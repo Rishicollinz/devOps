@@ -1,0 +1,8 @@
+services:
+  viteapp:
+    build: .
+    container_name: viteappcont
+    ports:
+      - '5000:5000'
+    volumes:
+      - ./conf.d/:/etc/nginx/conf.d/

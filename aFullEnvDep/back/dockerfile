@@ -1,0 +1,19 @@
+FROM node:latest as BUILD_IMAGE
+
+WORKDIR /app/viteapp
+
+COPY package.json .
+
+RUN npm install 
+
+COPY . .
+
+RUN npm run build 
+
+FROM nginx:1.25.4 as PRODUCTION_IMAGE
+
+WORKDIR /usr/share/nginx/html/ 
+
+COPY --from=BUILD_IMAGE /app/viteapp/dist/ .
+
+EXPOSE 3000

@@ -1,0 +1,22 @@
+services:
+  viteapp:
+    build: ./vite4
+    container_name: viteappcont
+    ports:
+      - '5000:5000'
+    volumes:
+      - ./vite4/conf.d/:/etc/nginx/conf.d/
+
+  backend:
+    build: ./back2
+    container_name: backendcont
+    ports:
+      - '3000:3000'
+
+  mysqldb:
+    build: ./mysqlDB
+    container_name: mysqldbcont
+    volumes:
+      - mysqlvol:/docker-entrypoint-initdb.d/
+volumes:
+  mysqlvol:

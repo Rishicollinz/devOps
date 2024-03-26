@@ -1,0 +1,32 @@
+FROM node:latest as BUILD_IMAGE
+
+WORKDIR /app/back2app
+
+COPY package.json .
+
+RUN npm install 
+
+COPY . .
+
+RUN npm install -g webpack
+
+RUN npm install webpack webpack-cli --save-dev
+
+RUN npm run build
+
+FROM node:latest as PRODUCTION_IMAGE
+
+WORKDIR /app/back2app
+
+COPY --from=BUILD_IMAGE /app/back2app/dist ./dist
+
+CMD ["node","./dist/final.js"]
+#RUN npm run build 
+
+#FROM nginx:1.25.4 as PRODUCTION_IMAGE
+
+#WORKDIR /usr/share/nginx/html/ 
+
+#COPY --from=BUILD_IMAGE /app/viteapp/dist/ .
+
+#EXPOSE 3000

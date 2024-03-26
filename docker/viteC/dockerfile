@@ -1,0 +1,29 @@
+FROM node:latest as BUILD_IMAGE
+
+WORKDIR /app/viteapp
+
+COPY package.json .
+
+RUN npm install
+
+COPY . .
+
+RUN npm run build 
+
+#production image
+
+FROM node:latest as PRODUCTION_IMAGE
+
+WORKDIR /app/viteapp
+
+COPY --from=BUILD_IMAGE /app/viteapp/dist/ /app/viteapp/dist/
+
+EXPOSE 8080
+
+COPY package.json .
+
+COPY vite.config.js .
+
+RUN npm install
+
+CMD [ "npm","run","preview" ]
