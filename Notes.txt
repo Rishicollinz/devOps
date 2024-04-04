@@ -1228,7 +1228,8 @@ Configuration file:
 
 Cluster mode:
 =============
-
+=>A cluster will use a single core.
+=>So 8 core cpu can have 8 cluster on max but we can increase the cluster but it will share the available cores, it is bad for performance
 module.exports = {
   apps: [{
     name: "vite-app",
@@ -1277,10 +1278,50 @@ Deployment of kalanju backend on v4-accounts-development branch:
 
 6.we can check this from : https://alpha.kalanju.com/api/accounts-service/healthcheck
 
-CDN(cloudflare) to AWS bucket:
+CDN(cloudflare) and (cloudfront) to AWS bucket:
 ==============================
+1.cloudfront - youtube video: https://www.youtube.com/watch?v=kbI7kRWAU-w&ab_channel=SamMeech-Ward
+
+2.cloudflare - youtube video: https://www.youtube.com/watch?v=KnlB52S9P3Y&ab_channel=FooBarServerless
 
 To access a bucket: https://<bucket_name>.s3.<region>.amazonaws.com/<filepath>/<filename>
 
 Eg:https://DOC-EXAMPLE-BUCKET.s3.us-west-2.amazonaws.com/photos/puppy.jpg
+
+problem : The loading of quick recruit website takes so much time, in order to reduce the loading time, we are gonna use cdn of cloud flare.
+
+Tools to check performance: https://tools.keycdn.com/performance
+==========================
+
+steps:
+1.set up distribution:
+
+    => search cloud front in aws services.
+    =>create a new distribution.
+    =>In origin domain, select the bucket you want to use for cdn.
+    =>Bucket Access - yes use OAI.
+        ->This allows us to keep the s3 bucket private and only allows through cloud front.
+    =>origin access identity = create new oai.
+    =>Bucket policy => yes, update the bucket policy.
+    =>no custom header, no origin shield.
+    =>In default cache behaviour, redirect http to https.
+    =>In allowed methods, get , head only.
+    =>No restrict viewer access.
+    =>In cache policy, use caching optimized.
+    =>In location, all locations.
+    =>Don't need Custom domain name.
+    =>Create distribution will take few mins.
+
+2.There will be a distribution domain name for the this.
+
+3.to get the file from cloudfront:
+    ->https://<distribution_name>/<s3_bucket_name>
+    ->we can see this image.
+
+4. How to use this in code:
+    ->when reading, use <distribution_name>+<object_name>
+    =>Now everything will come from cloudfront.
+
+cloudflare static hosting:
+==========================
 
