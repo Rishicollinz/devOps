@@ -1,10 +1,22 @@
 version: "3.8"
 services:
-  myapp:
-    build: ./myapp
-    container_name: myapp-c 
+  st-backend-service:
+    container_name: st-backend-service
+    image: backend-service:latest
+    restart: always
     ports:
-      - '3000:3001'
+      - "8005:8005"
+    environment:
+      - GEMINI_API_KEY_1="AIzaSyCC1EhGNpRGHd_wAQOo_ZMasIzc1h6GYEA"
+      - GEMINI_API_KEY_2="AIzaSyBJf5vtDCpMwRsto6MjTCHy1hFL9Ph7AFU"
+      - GEMINI_API_KEY_3="AIzaSyDPOarJjx1jRvZv3lc0q3kToP4wtp2pvyA"
+      - LINKEDIN_USER_NAME="rendumail2024@gmail.com"
+      - LINKEDIN_PASSWORD="Codingmart"
+      - REACT_URL="https://quickrecruit.com"
+      - CLIENT_ID="8650bx37tgfft8"
+      - CLIENT_SECRET="15tKuXLIlZbbc1ng"
+      - SCOPE="openid email profile r_ads_reporting r_organization_social rw_organization_admin w_member_social r_ads w_organization_social rw_ads r_ba>ENV REDIRECT_URI="https://smalltools.quickrecruit.com/api/v1/linkedin/redirect"
+      - FACEBOOK_CLIENT_ID="146038414455064"
+      - FACEBOOK_CLIENT_SECRET="28ae6ab1c12a6558bf17b085be1e3db8"
     volumes:
-      - ./myapp:/app
-      - /app/node_modules
+      - /root/backend-service-mount:/app

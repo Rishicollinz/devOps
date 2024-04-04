@@ -939,3 +939,348 @@ refer:./aFullEnvDep
 4.A overall config compose file with all these separate containers:
 ======================================================================
 
+27/3/24:
+===========
+
+=>To get a free website:https://www.name.com/partner/github-students#:~:text=Free%20domain%20name,free%20domain%20names%20to%20students.
+ 
+
+GCP:
+=>Create a new vm with how to create:
+https://cloud.google.com/compute/docs/instances/create-start-instance
+
+setting ssh for the instance: so that I can access via the terminal:
+=>
+
+docker container run -it -v /tmp:/tmp -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/docker/containers:/var/lib/docker/containers:ro -e ACCOUNT_UUID={bc940e7b-1f0a-490d-981f-c3a920d02358} -e REPOSITORY_UUID={03c26cbc-7ee1-4f12-9955-2dd50a8f7e68} -e RUNNER_UUID={3923faa8-1568-5fb4-a09f-2bc7f74d06c9} -e RUNTIME_PREREQUISITES_ENABLED=true -e OAUTH_CLIENT_ID=BJsKUgntWzpMl68bqlbLQdMcIkTwnHTh -e OAUTH_CLIENT_SECRET=ATOAVu7kIMSk-Af_VDHLuXBepP7CA1lYDGPd5nA_bCgv7xi-7wW2DknNLNzqgD24IBC9B36ACFEB -e WORKING_DIRECTORY=/tmp --name runner-3923faa8-1568-5fb4-a09f-2bc7f74d06c9 docker-public.packages.atlassian.com/sox/atlassian/bitbucket-pipelines-runner:1
+
+1.Certbot:
+2.nginx config
+
+FE-Small Tools:=Project.=1/4/24-2/4/24
+===============
+Description : Deployment of the staging branch on remote server for the front end development team with manual deploy of the build and written pipeline for it.
+
+Server External IP: ssh root@13.201.173.55=>
+    =>The ssh key of rishi is added to server.
+
+1.Cloned the "git clone git@bitbucket.org:pmo-codingmart/qr_small_tools_fe.git" into qr_small_tools_fe.
+2.Run npm install
+3.npm run build
+    =>For this to work, I have increased the previous swap of 2GB to now 4GB.
+    =>In the package.json, in the scripts block, increase the "--max-old-space-size=1048" to "1548".
+4.using the pm2,
+    =>pm2 --name <appName> serve --spa <staticFolder> <port>
+    =>using this deploy
+5.In the nginx, create the conf.d file for this website:
+    =>It is located at /etc/nginx/sites-enabled/quickrecruit.default
+6.Check the bash file on /config/small-tools-fe-home.deploy
+Check the website on https://staging.quickrecruit.com
+
+notes:
+======
+    1.Request header to see if any errors.
+    2.run bash script directly on server and use runner just for running not for build the application.
+    3.use pm2 not docker because docker consumes lot of memory.
+    4.since we used rm -rf ./quickrecruit on pipeline, during the running of the pipeline, the results will be 404 not found.
+    6.how to increase swap size: https://www.baeldung.com/linux/increase-swap-space
+    7.pm2 save to save all the instance in a server and pm2 restruct to up all the instance.
+
+Things to study:
+1.CDN, Cloudflare, AWS , prettier & pre-commit & husky
+
+remote address:34.72.180.102:443
+
+Things to study:
+1.pm2,docker integration,jenkins, kubernetes.
+
+3/4/24:
+======
+
+1.PM2:
+=====
+
+=>It is a open source process management for nodejs applications.
+
+Install:
+npm install pm2@latest -g 
+
+start an app:
+============
+$ pm2 start app.js
+
+$ pm2 start bashscript.sh
+$ pm2 start python-app.py --watch
+$ pm2 start binary-file -- --port 1520
+
+# Specify an app name
+--name <app_name>
+
+# Watch and Restart app when files change
+--watch
+
+# Set memory threshold for app reload
+--max-memory-restart <200MB>
+
+# Specify log file
+--log <log_path>
+
+# Pass extra arguments to the script
+-- arg1 arg2 arg3
+
+# Delay between automatic restarts
+--restart-delay <delay in ms>
+
+# Prefix logs with time
+--time
+
+# Do not auto restart app
+--no-autorestart
+
+# Specify cron for forced restart
+--cron <cron_pattern>
+
+# Attach to application log
+--no-daemon
+
+Managing process:
+
+$ pm2 restart app_name
+$ pm2 reload app_name
+$ pm2 stop app_name
+$ pm2 delete app_name
+
+List:
+pm2 ls
+
+log:
+pm2 logs
+
+dashboard: pm2 monit 
+
+pm2 ecosystem:
+this is generate an ecosystem.config.js file:
+
+module.exports = {
+  apps : [{
+    name: "app",
+    script: "./app.js",
+    env: {
+      NODE_ENV: "development",
+    },
+    env_production: {
+      NODE_ENV: "production",
+    }
+  }, {
+     name: 'worker',
+     script: 'worker.js'
+  }]
+}
+
+Starting an app:
+1. we can use serve for first time.
+2. we can start like this,
+    =>pm2 start "npm run start"
+
+To display log:
+    =>$ pm2 start "npm run start" --attach
+
+Passing arguments:
+    =>$ pm2 start <startscript> -- arg1 arg2
+    
+    =>Any thing after -- is arguments.
+
+configuration file:
+==================
+
+    =>we need configuration file when we need to manage multiple applications at the same time.
+
+    =>create using pm2 ecosystem and start using 'pm2 start ecosystem.config.js'
+
+    =>we will study more about it later.
+
+Restarting:
+=========
+
+=>pm2 restart api= for single app
+=>pm2 restart app1 app2 = for multiple app
+=>pm2 restart all = for restarting all the app.
+
+updating env variables:
+========================
+=>To update environment variables or PM2 options, specify the --update-env CLI option:
+
+$ NODE_ENV=production pm2 restart web-interface --update-env
+
+Stop:
+=====
+
+=>pm2 stop <app>, stop <process_id>, stop all, stop <app1> <app2>.
+
+delete:
+=======
+
+=>pm2 delete app, pm2 delete all.
+
+listing apps:
+============
+
+$pm2 ls
+
+=>To specify the order of the list:
+    =>$pm2 list --sort [name|id|pid|memory|cpu|status|uptime][:asc|desc]
+
+Terminal dashboard:
+=>$ pm2 monit gives you a simple way to monitor the resource usage of my app.
+
+showing application metadata:
+=>To display metadata about an application:
+    $ pm2 show api
+=>This will show where the error logs are located.
+
+Restarting strategies:
+=====================
+
+=>Pm2 automatically restarts in case of app crashes.
+
+cron restart: 
+=============
+    =>It is the periodic restart of the application without manual intervention.
+    $pm2 start app.js --cron-restart="0 0 * * *"
+        =>the syntax meaning is cron-restart=consists of five fields representing minute, hour, day of month, month, and day of week.
+        =>Here it restarts daily at 12:00AM 
+
+Restart on file change: just add --watch on start application.
+-=-=-=-=-=-=-=-=-=-=-=
+    =>It has watch for specific file,watch_delay and ignore_watch and these can configured ecosystem file.
+
+Memory based restart:$ pm2 start api.js --max-memory-restart 300M
+======================
+
+Restart Delay:
+=============
+$ pm2 start app.js --restart-delay=3000
+
+No auto restart:
+=================
+$ pm2 start app.js --no-autorestart
+
+Skip Auto Restart For Specific Exit Codes
+==========================================
+$ pm2 start app.js --stop-exit-codes 0
+
+Exponential backoff restart:
+=============================
+$ pm2 start app.js --exp-backoff-restart-delay=100
+    =>It exponentially increases the restart time.
+
+Logs:
+=====
+pm2 logs <app name or id>
+
+
+Flusing logs:
+============
+
+pm2 flush <appname> =>will clear all the log data.
+
+Auto prefixing log with time:
+    =>pm2 start appname --time
+
+Persistent application:
+======================
+    =>This is used if we want our application to run even after system restart.
+
+    1.$pm2 save => It will save all the running apps in pm2.
+
+    2.$pm2 resurrect => It will start all the previously saved application.
+
+    3.$pm2 startup => This is automatic method, once it is given only one time, the saved pm2 apps will start on every restart and pm2 also starts. 
+        =>Follow the steps by executing this command.
+
+    4.$pm2 unstartup => To remove the startup.
+
+Configuration file:
+==================
+
+    =>when managing multiple application with pm2, we a js config file known as ecosystem.config.js => we can start the application with this.
+
+    =>To create a sample configuration file:
+        pm2 init simple
+
+    => Then we can manage multiple apps in the same way as normal.
+        #start all the applications
+        pm2 start ecosystem.config.js
+
+        # Stop all
+        pm2 stop ecosystem.config.js
+
+        # Restart all
+        pm2 restart ecosystem.config.js
+
+        # Reload all
+        pm2 reload ecosystem.config.js
+
+        # Delete all
+        pm2 delete ecosystem.config.js
+
+    =>There are various configuration attributes located at:https://pm2.keymetrics.io/docs/usage/application-declaration/
+
+Cluster mode:
+=============
+
+module.exports = {
+  apps: [{
+    name: "vite-app",
+    script: "npm",
+    args: "run dev", // Assuming your start script for Vite is 'npm run dev'
+    cwd: "/home/rishikeshb/Documents/DevOps/pm2/ex1", // Change this to the actual path of your Vite app
+    watch: true,
+    ignore_watch: ["node_modules"],
+    instances: "4",
+    exec_mode: "cluster"
+  }]
+};
+
+4/4/24:
+======
+Deployment of kalanju backend on v4-accounts-development branch:
+=================================================================
+    Repo : https://bitbucket.org/pmo-codingmart/kalanju-new-be/src/v4-accounts-development/bitbucket-pipelines.yml
+
+    ->source branch: accounts-dev
+    url:alpha.kalanju.com 
+        ->test: alpha.kalanju.com/api/accounts-service/healthcheck.
+    ->server ssh root@alpha.kalanju.com
+
+1. Created a new branch : v4-accounts-development from accounts-dev
+
+2. Wrote a new pipeline in bitbucket
+
+3. wrote a deploy(script) file:
+    #!/bin/bash
+    cd /root/account-service
+    rm -rf node_modules/
+    npm i
+    npx prisma generate
+    cp /root/config/env/account-service/.env /root/account-service/
+    /usr/bin/pm2 restart account-service 
+
+        error:Error: ENOENT: no such file or directory, open '/root/account-service/node_modules/.bin/prisma schema build_log.wasm'
+        =>When running, the env is not available error entenv error because the node version on server is 16 but we copied from the node modules from 18.
+
+        =>delete the node modules and install using npm i for the node 16 then generate npx prisma generate there.
+
+4. Create env -> account-service -> .env = It is copied from the kiruthiga akka's env.
+
+5. Then copied this env to the account-service on home.
+
+6.we can check this from : https://alpha.kalanju.com/api/accounts-service/healthcheck
+
+CDN(cloudflare) to AWS bucket:
+==============================
+
+To access a bucket: https://<bucket_name>.s3.<region>.amazonaws.com/<filepath>/<filename>
+
+Eg:https://DOC-EXAMPLE-BUCKET.s3.us-west-2.amazonaws.com/photos/puppy.jpg
+
