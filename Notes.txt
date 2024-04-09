@@ -1325,3 +1325,120 @@ steps:
 cloudflare static hosting:
 ==========================
 
+Refer:https://developers.cloudflare.com/pages/framework-guides/deploy-anything/
+https://developers.cloudflare.com/pages/framework-guides/deploy-a-react-site/
+
+problem: 
+    =>We can deploy the static site of vite mcq on cloudflare but it gives only .pages.dev (website);
+    =>we can run a backend server with a domain which runs on http;
+    =>so we need a backend domain to convert it to https;
+    =>then we can use .pages.dev for frontend and server on test.codingmart.com which is not allowed by the upper management.
+
+    =>They are saying the will check and say.
+
+kubernetes:=9/4/24
+===========
+
+=>Kubernetes is a container orchestration tool.
+
+=>Suppose we have a thousands of containers, if we have to push a update, then we have to update every container manually which is tedious. so we can use kubernetes to automate these processes.
+
+=>Features:
+    ->Service discovery and load balancing.
+    ->Storage orchestration.
+    ->Automated rollouts and rollbacks.
+    ->Automatic bin packing.
+    ->Self-healing.
+    ->Secret and configuration management.
+    ->Batch execution.
+    ->Horizontal scaling.
+    ->IPv4/IPv6 dual-stack.
+    ->Designed for extensibility.
+
+1.Installed kubectl:https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/#install-using-native-package-management
+
+2.Installed minikube:https://minikube.sigs.k8s.io/docs/start/
+
+3.Installed kind: https://kind.sigs.k8s.io/docs/user/quick-start/ by homebrew.
+
+
+
+Kubernetes - Basics terms:
+    In Kubernetes, objects are entities used to define the desired state of the cluster. These objects represent various components of an application or the Kubernetes system itself. Kubernetes uses these objects to manage and maintain the state of the cluster, ensuring that the applications run as intended. Some common Kubernetes objects include:
+
+    1. **Pods**: Pods are the smallest deployable units in Kubernetes. They represent a single instance of a running container or multiple tightly coupled containers that share resources, such as storage and network, and are scheduled together on the same node.
+
+    2. **ReplicaSets**: ReplicaSets ensure that a specified number of Pod replicas are running at any given time. They help in scaling the number of identical Pods up or down based on the desired state.
+
+    3. **Deployments**: Deployments provide declarative updates to Pods and ReplicaSets. They manage the rollout and rollback of changes to applications by updating the ReplicaSets with new Pod specifications.
+
+    4. **Services**: Services define a logical set of Pods and a policy by which to access them. They provide a consistent way to access applications running in Kubernetes, abstracting away the details of individual Pod IP addresses.
+
+    5. **Volumes**: Volumes are used to persist data in Kubernetes. They allow containers within Pods to share data or persist data beyond the lifecycle of a Pod.
+
+    6. **ConfigMaps and Secrets**: ConfigMaps and Secrets are used to decouple configuration artifacts from container images. They store configuration data and sensitive information, respectively, which can be injected into Pods as environment variables or mounted as files.
+
+    7. **Namespaces**: Namespaces provide a way to divide cluster resources into virtual clusters, making it easier to manage and isolate workloads within a single physical cluster.
+
+    8. **DaemonSets**: DaemonSets ensure that a copy of a Pod runs on all or some of the nodes in the cluster. They are typically used for system-level services such as monitoring agents or logging collectors.
+
+    9. **StatefulSets**: StatefulSets manage the deployment and scaling of stateful applications, such as databases. They provide stable, unique network identities and persistent storage for each Pod.
+
+    10. **Jobs and CronJobs**: Jobs and CronJobs are used to run batch or scheduled tasks in the cluster. Jobs are used for one-off or finite tasks, while CronJobs are used to run tasks at specified intervals.
+
+    These are just some of the core Kubernetes objects. Kubernetes offers a wide range of objects to manage various aspects of containerized applications and infrastructure. Understanding these objects and how to use them effectively is essential for managing applications in Kubernetes.
+
+steps:
+=>Installed kubectl.
+=>Installed minikube.
+
+3.Start minikube: minikube start.
+
+4.To monitor: minikube dashboard.
+
+5. TO see services: kubectl get services
+
+6. To create a deployment: minikube kubectl -- create deployment hello-minikube --image=kicbase/echo-server:1.0
+
+7. To exposing the deployment:
+minikube kubectl -- expose deployment hello-minikube --type=NodePort --port=8080
+
+Freecode camp video:https://www.youtube.com/watch?v=kTp5xUtcalw&ab_channel=freeCodeCamp.org
+====================
+
+Microservices architecture:
+===========================
+
+=> A variant of the service-oriented architecture structural style - arranges an application as a collection of loosely coupled services.
+
+=> In a microservices architecture, services are fine-grained and the protocols are lightweight.
+
+=>In microservices, we separate each service into single one and deployed independently.
+
+=>Loosely coupled.
+
+=>Each microservice has it's own db.
+
+Monolithic architecture:
+=======================
+
+=>Built as a single unit.
+=>Deployed as a single unit.
+=>Duplicated on each server.
+Ex: 3 -tier apps.
+
+Cloud native:
+============
+Definition:
+
+=> In summary, "cloud-native" refers to a modern approach to building and running applications that harnesses the power of cloud computing. Key aspects of cloud-native applications include microservices architecture, containerization, dynamic orchestration, elasticity, resilience, DevOps practices, observability, and utilization of cloud-native services. This approach enables organizations to innovate rapidly, scale efficiently, and deliver high-quality applications while leveraging the full potential of cloud computing resources.
+
+Concepts of cloud native:
+==========================
+
+    =>Speed and agility,no downtime, fast added features.
+
+    Trail map:
+
+    =>containerization, CI/CD, Orchestration(kubernetes), observability(prometheus),Service proxy mesh, security and policy.
+
