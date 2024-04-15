@@ -1403,6 +1403,7 @@ steps:
 7. To exposing the deployment:
 minikube kubectl -- expose deployment hello-minikube --type=NodePort --port=8080
 
+=========================================
 Freecode camp video:https://www.youtube.com/watch?v=kTp5xUtcalw&ab_channel=freeCodeCamp.org
 ====================
 
@@ -1442,3 +1443,223 @@ Concepts of cloud native:
 
     =>containerization, CI/CD, Orchestration(kubernetes), observability(prometheus),Service proxy mesh, security and policy.
 
+Orchestrator:
+=============
+
+    =>Manage:    
+        ->infrastructure
+        ->containers
+        ->Deployment
+        ->scaling
+        ->Failover
+        ->Health monitoring
+        ->App upgrades, zero-downtime deployments 
+    =>Install your own:
+        ->Kubernetes, Swarm, Service Fabric 
+    =>Orchestrators as a service:
+        ->AKS, EKS, GKS.
+
+35:11 = video 
+
+10/4/24=Freecodecamp = docker containers and kubernetes fundamentals:
+===============================================================
+
+=>Enable kubernetes on docker desktop.
+
+=>use yamllint.com to check the yaml file validity.
+
+Docker compose v1 vs v2:
+=======================
+=>we can create multiple instance of the same compose app.
+
+v2: docker compose =>install =>sudo apt-get compose-plugin.
+
+=>we can set resources for the containers,
+    ->services:
+        redis:
+          image: redis:alpine
+          deploy:
+            resources:
+              limits:
+                cpus:'0.50'
+                memory: 150M
+              reservations:
+                cpus: '0.25'
+                memory: 20M 
+
+Kubernetes/k8s:
+===============
+=>Leading container orchestration tool.
+=>Designed as a loosely coupled collection of components centered around deploying, maintaining and scaling workloads.
+=>Vendor-neutral
+    ->Runs on all cloud providers.
+
+Architecture:
+->Master node/ control panel.(kubernetes is running here.)
+->Worker node (where the projects are deployed.)
+
+Flow:
+    =>Cluster > Node > Pod > Container.
+    
+Running kubernetes locally:
+===========================
+
+    =>Local k8s:
+    ===========
+        ->Requires virtualization:
+            ->Docker desktop
+            ->MicroK8s 
+            ->Minikube (Kubernetes IN Docker)
+        ->Runs over Docker Desktop:
+            ->Kind.
+        
+        =>Docker desktop only one node but others multiple nodes.
+
+    => we can run kubernetes in three ways:
+        1.Docker desktop.
+            ->Enable kubernetes on app and maybe reset kubernetes cluster.
+        2.minikube.
+            ->Start: minikube start
+            chk: kubectl cluster-info
+        3.Kind.=> installed kind using brew.
+            ->Kind create cluster.
+            ->Kind delete cluster.
+k8s cli:
+========
+    =>K8s api server runs on master node and it exposes a rest api - a only way to communicate with the clusters.
+
+    =>Kubectl configuration stored locally on ${Home}/.kube/config.
+
+k8s context:
+============
+    =>A context is a group of access parameters to a k8s cluster.
+
+    =>Contains a kubernetes cluster, a user and a namespace.
+
+    =>The current context is the cluster that is currently the default for kubectl.
+
+    command cheat sheet:
+    1.kubectl config current-context = get the current context.
+    2.kubectl config get-contexts = list all context.
+    3.kubectl config use-context <contextName> = set the current context.
+    4.kubectl config delete-context <contextName> = delete a context from the config file.
+    5.kubectl config rename-context <oldName> <newName> = to change name.
+    6.kubectx <contextName> = will quickly change the context. 
+
+ways to create resources in kubernetes:
+=======================================
+    1.Imperative:
+        =>Using kubectl commands, issue a series of commands to create resources.
+        =>Great for learning, testing and troubleshooting.
+        =>It's like code.
+        Ex:
+            $ kubectl run mynginx --image=nginx --port=80
+            $ kubectl create deploy mynginx --image=nginx --port=80 --replicas=3
+            $ kubectl create service nodeport myservice --targetPort=8080
+            $ kubectl delete pod nginx
+    2.Declarative:
+        =>Using kubectl and yaml manifests defining the resources that you need.
+        =>Reproducible, repeatable.
+        =>Can be saved in source control.
+        =>It's like data that can be parsed and modified.
+        Ex: YAML File (deploy.yaml)
+            apiVersion: v1 
+            kind: pod 
+            metadata:
+                name: myapp pod
+                labels:
+                  app: myapp
+                  type: front-end 
+                spec:
+Deploying a docker image from hub with kubernetes:
+=================================================
+
+    =>Start the minikube.
+
+    =>kubectl create deployment hello-minikube --image=<imagename>
+
+    =>kubectl expose deployment hello-minikube --type=NodePort --port=8080
+
+    =>port forward:
+        ->kubectl port-forward service/hello-minikube 7080:8080
+
+Deploying a docker image from local with kubernetes:
+===================================================
+
+    1.create a file like this bb.yaml:
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+        name: bb-demo
+        namespace: default
+        spec:
+        replicas: 1
+        selector:
+            matchLabels:
+                bb: web
+        template:
+            metadata:
+                labels:
+                    bb: web
+            spec:
+                containers:
+                    - name: bb-site
+                    image: getting-started
+                    imagePullPolicy: Never
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+        name: bb-entrypoint
+        namespace: default
+        spec:
+        type: NodePort
+        selector:
+            bb: web
+        ports:
+            - port: 3000
+                targetPort: 3000
+                nodePort: 30001
+
+    2.kubectl apply -f bb.yaml
+
+    3.kubectl get deployments || get pods || get services
+
+    4.Check on localhost:30001
+
+    5.kubectl delete -f bb.yaml => to delete all the things from apply.
+
+Certbot: https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-20-04
+
+
+Kubernetes - Master and worker nodes:
+=====================================
+
+1. setting up private repository for docker images :https://www.digitalocean.com/community/tutorials/how-to-set-up-a-private-docker-registry-on-ubuntu-20-04
+
+
+2.Running an image from private registry on minikube:
+======================================================
+
+    =>Create a deployment:  
+        kubectl create deployment samreact --image=rishicollinz.me/samreact
+
+    =>See a file for spec.template.spec.containers and note down the container name:
+        kubectl get deployment samreact -o yaml --kubeconfig ~/.kube/config
+    
+    =>Set the server address, for the deployment:
+        kubectl set image deployment/samreact samreact=rishicollinz.me/samreact --kubeconfig ~/.kube/config --namespace=default
+
+    =>create a kubernetes secret with registry username and password:
+        kubectl create secret docker-registry regcred --docker-server=rishicollinz.me --docker-username=rishicollinz --docker-password=wantedbyme
+
+    =>Add the secret to deployment:
+        kubectl patch deployment samreact -p '{"spec":{"template":{"spec":{"imagePullSecrets":[{"name":"regcred"}]}}}}' --kubeconfig ~/.kube/config --namespace=default
+    
+    =>Expose the deployment:
+        kubectl expose deployment samreact --type=NodePort --port=3000
+
+    =>Port forward it:
+        kubectl port-forward service/samreact 3000:3000
+
+    k8s = namespace - yaml file, service,clusterIp, nodeport, services, max-surge, replicaset, rolling update, pod health check
