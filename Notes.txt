@@ -2026,3 +2026,6 @@ Jenkins web GUI walkthrough:
     =>Dashboard=>manage nodes and clouds - this is where we add the agents and cloud .
     =>Manage credential for storing api keys, ssh keys.
 
+ 
+
+    

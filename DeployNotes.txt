@@ -1,0 +1,249 @@
+1)FE-Small Tools:=Project.=1/4/24-2/4/24
+===============
+Description : Deployment of the staging branch on remote server for the front end development team with manual deploy of the build and written pipeline for it.
+
+Server External IP: ssh root@13.201.173.55=>
+    =>The ssh key of rishi is added to server.
+
+1.Cloned the "git clone git@bitbucket.org:pmo-codingmart/qr_small_tools_fe.git" into qr_small_tools_fe.
+2.Run npm install
+3.npm run build
+    =>For this to work, I have increased the previous swap of 2GB to now 4GB.
+    =>In the package.json, in the scripts block, increase the "--max-old-space-size=1048" to "1548".
+4.using the pm2,
+    =>pm2 --name <appName> serve --spa <staticFolder> <port>
+    =>using this deploy
+5.In the nginx, create the conf.d file for this website:
+    =>It is located at /etc/nginx/sites-enabled/quickrecruit.default
+6.Check the bash file on /config/small-tools-fe-home.deploy
+Check the website on https://staging.quickrecruit.com
+
+notes:
+======
+    1.Request header to see if any errors.
+    2.run bash script directly on server and use runner just for running not for build the application.
+    3.use pm2 not docker because docker consumes lot of memory.
+    4.since we used rm -rf ./quickrecruit on pipeline, during the running of the pipeline, the results will be 404 not found.
+    6.how to increase swap size: https://www.baeldung.com/linux/increase-swap-space
+    7.pm2 save to save all the instance in a server and pm2 restruct to up all the instance.
+
+4/4/24:
+======
+2)Deployment of kalanju backend on v4-accounts-development branch:
+=================================================================
+    Repo : https://bitbucket.org/pmo-codingmart/kalanju-new-be/src/v4-accounts-development/bitbucket-pipelines.yml
+
+    ->source branch: accounts-dev
+    url:alpha.kalanju.com 
+        ->test: alpha.kalanju.com/api/accounts-service/healthcheck.
+    ->server ssh root@alpha.kalanju.com
+
+1. Created a new branch : v4-accounts-development from accounts-dev
+
+2. Wrote a new pipeline in bitbucket
+
+3. wrote a deploy(script) file:
+    #!/bin/bash
+    cd /root/account-service
+    rm -rf node_modules/
+    npm i
+    npx prisma generate
+    cp /root/config/env/account-service/.env /root/account-service/
+    /usr/bin/pm2 restart account-service 
+
+        error:Error: ENOENT: no such file or directory, open '/root/account-service/node_modules/.bin/prisma schema build_log.wasm'
+        =>When running, the env is not available error entenv error because the node version on server is 16 but we copied from the node modules from 18.
+
+        =>delete the node modules and install using npm i for the node 16 then generate npx prisma generate there.
+
+4. Create env -> account-service -> .env = It is copied from the kiruthiga akka's env.
+
+5. Then copied this env to the account-service on home.
+
+6.we can check this from : https://alpha.kalanju.com/api/accounts-service/healthcheck
+
+3)CDN(cloudflare) and (cloudfront) to AWS bucket:
+==============================
+1.cloudfront - youtube video: https://www.youtube.com/watch?v=kbI7kRWAU-w&ab_channel=SamMeech-Ward
+
+2.cloudflare - youtube video: https://www.youtube.com/watch?v=KnlB52S9P3Y&ab_channel=FooBarServerless
+
+To access a bucket: https://<bucket_name>.s3.<region>.amazonaws.com/<filepath>/<filename>
+
+Eg:https://DOC-EXAMPLE-BUCKET.s3.us-west-2.amazonaws.com/photos/puppy.jpg
+
+problem : The loading of quick recruit website takes so much time, in order to reduce the loading time, we are gonna use cdn of cloud flare.
+
+Tools to check performance: https://tools.keycdn.com/performance
+==========================
+
+steps:
+1.set up distribution:
+
+    => search cloud front in aws services.
+    =>create a new distribution.
+    =>In origin domain, select the bucket you want to use for cdn.
+    =>Bucket Access - yes use OAI.
+        ->This allows us to keep the s3 bucket private and only allows through cloud front.
+    =>origin access identity = create new oai.
+    =>Bucket policy => yes, update the bucket policy.
+    =>no custom header, no origin shield.
+    =>In default cache behaviour, redirect http to https.
+    =>In allowed methods, get , head only.
+    =>No restrict viewer access.
+    =>In cache policy, use caching optimized.
+    =>In location, all locations.
+    =>Don't need Custom domain name.
+    =>Create distribution will take few mins.
+
+2.There will be a distribution domain name for the this.
+
+3.to get the file from cloudfront:
+    ->https://<distribution_name>/<s3_bucket_name>
+    ->we can see this image.
+
+4. How to use this in code:
+    ->when reading, use <distribution_name>+<object_name>
+    =>Now everything will come from cloudfront.
+
+cloudflare static hosting:
+==========================
+
+Refer:https://developers.cloudflare.com/pages/framework-guides/deploy-anything/
+https://developers.cloudflare.com/pages/framework-guides/deploy-a-react-site/
+
+
+4)MCQ app:
+==========
+    =>There is frontend and backend.
+    =>Copied the code on server, and served using pm2 and certbot setted up.
+    =>Runs on pm2 fork method.
+    =>There is a dockerfile on both frontend and backend and there is pm2 inside docker to serve those thing inside docker container.
+
+    Changes to frontend -> static hosting and backend -> server:
+    problem: 
+    =>We can deploy the static site of vite mcq on cloudflare but it gives only .pages.dev (website);
+    =>we can run a backend server with a domain which runs on http;
+    =>so we need a backend domain to convert it to https;
+    =>then we can use .pages.dev for frontend and server on test.codingmart.com which is not allowed by the upper management.
+
+    =>They are saying the will check and say.
+
+17/4/24 - 18/4/24:
+==================
+5)Deployed elevato.ai with http = Damu developer
+==============================
+    Backend : 1 Frontend: 3
+    deploy codes:
+    ecosystem.config.js:
+        ===================
+            module.exports = {
+            apps: [
+                {
+                name: "backend-squib",
+                script: "npm",
+                args: "start",
+                cwd: "/home/ubuntu/backend-squib",
+                watch: false,
+                instances: "2",
+                exec_mode: "cluster"
+                },
+                {
+                name: "frontend-squib",
+                script: "/home/ubuntu/frontend-squib/server.js",
+                cwd: "/home/ubuntu/frontend-squib",
+                watch: false,
+                instances: "2",
+                exec_mode: "cluster"
+                },
+                {
+                name: "frontend-story-squib",
+                script: "/home/ubuntu/story-comp/server.js",
+                cwd: "/home/ubuntu/story-comp",
+                watch: false,
+                instances: "2",
+                exec_mode: "cluster"
+                },
+                {
+                name: "frontend-landing-page-squib",
+                script: "/home/ubuntu/landing-page/server.js",
+                cwd: "/home/ubuntu/landing-page",
+                watch: false,
+                instances: "2",
+                exec_mode: "cluster"
+                }
+            ]
+            };
+
+    *.Server.js with build:
+    =======================
+    const express = require('express');
+    const path = require('path');
+
+    const app = express();
+    const port = 3000;
+
+    app.use(express.static(path.join(__dirname, 'build')));
+
+    app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+    });
+
+    app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+    });
+
+    *.server.js without build:
+    ========================
+    const express = require('express');
+    const path = require('path');
+
+    const app = express();
+    const port = 3001;
+
+    // Serve static files from the root directory
+    app.use(express.static(path.join(__dirname)));
+
+    // Serve 'index.html' for all routes
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, 'index.html'));
+    });
+
+    // Start the server
+    app.listen(port, () => {
+        console.log(`Server is running on port ${port}`);
+    });
+
+    Http referer nginx:
+    =================
+        if ($http_referer ~* "story") {
+            proxy_pass http://localhost:5173;
+            break;
+        }
+        if ($http_referer ~* "home"){
+            proxy_pass http://localhost:3001;
+            break;
+        }
+    Problems faced:
+    ===============
+
+    =>https securing using certbot didn't work so analyzed using various methods which also didn't work. so came to the conclusion that we should just buy go daddy's certificates.
+    =>Problems with using static assets loading for different apps because different apps (react, nginx) all have different build folders, in order to load that we have to use nginx http referer;
+    => Javascript out of heap memory : It happens when there is not enough ram in server. To solve that ensured that local and server both have same node and npm, and then install npm i on local and zipped and transfered it to the server -> unzip -> deployed.
+
+    =>In Backend, 
+        => placed the code in the aws server, installed node v21 and npm for the same.
+        => installed pm2, set up ecosystem.config.js and deployed it without build directly.
+        => Installed nginx and reverse proxied.
+    
+    =>In frontend - / - login page:
+        => Installed "npm i" on local machine, zipped all the contents, transfered to server, unzipped and created a new server.js and deployed using that server.js file on pm2.
+    
+    =>In frontend - /story, frontend - /home page:
+        =>Same as above and have to http referer for 3 hours.
+
+    Endpoints: prefix: http://
+        =>elevato.ai/home = landing page = running on port 3001
+        =>elevato.ai/ = login page(oauth)= running on port 3000
+        =>elevato.ai/story/Brand/12345 = main page = running on port 5173
+        =>elevato.ai/api/getstories/Brand/12345 = backend = running on port 5000
