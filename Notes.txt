@@ -212,7 +212,7 @@ Method 1:scp srinath@192.168.1.26:/home/srinath/my_practice/JavaScript.pdf .
 scp <Source@IP>:<source_folder> <destination_folder>
 
 Method 2:scp array.js rishikeshb@192.168.1.63:.
-scp <fromhere_file> destination@IP .
+scp <fromhere_file> destination@IP:.
 
 
 Git:
@@ -895,6 +895,17 @@ express->dockerize
 
 https://its-amit.medium.com/how-to-make-build-for-express-js-node-js-using-webpack-and-deployment-on-docker-9cd219ba24a2
 
+http referer nginx:
+if ($http_referer ~* "story") {
+                        proxy_pass http://localhost:5173;
+                        break;
+}
+if ($http_referer ~* "home"){
+                        proxy_pass http://localhost:3001;
+                        break;
+}
+
+
 26/3/24:
 ========
 Task : Full deployment:
@@ -1489,6 +1500,7 @@ v2: docker compose =>install =>sudo apt-get compose-plugin.
 
 Kubernetes/k8s:
 ===============
+cluster>namespace>pods
 =>Leading container orchestration tool.
 =>Designed as a loosely coupled collection of components centered around deploying, maintaining and scaling workloads.
 =>Vendor-neutral
@@ -1629,6 +1641,9 @@ Deploying a docker image from local with kubernetes:
 
     5.kubectl delete -f bb.yaml => to delete all the things from apply.
 
+15/4/24:
+========
+
 Certbot: https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-20-04
 
 
@@ -1662,4 +1677,352 @@ Kubernetes - Master and worker nodes:
     =>Port forward it:
         kubectl port-forward service/samreact 3000:3000
 
+16/4/24:
+========
+k3s vs k8s:
+===========
+
+=>K3S is distribution of kubernetes and the daemon are the same but packages it differently.
+
+features:
+=========
+    =>It is lightweight, single binary.
+    =>Low resource usage.
+    =>Compatibility
+    =>Ethos.
+
+Changes from k8s :
+==================
+    =>Combined all processes to single binary.
+    =>Cross-compiled for arm.
+    =>Dropped non-csi storage providers.(third-party storage providers are dropped).
+    =>Dropped cloud providers Integration.
+    =>Automatic certificate creation/rotation.
+    =>Bundle all user-space tools too (iptables, du, find, etc);
+
+K3S added features:
+===================
+    =>Automatic manifests deployment = (If there is a yaml file in a project, then during the installation of the k3s, it is automatically deployed)
+
+    =>KINE - for using sqlite/dqlite/MYSQL/postgresQL instead of etcd for storage.
+
+    =>Custom helm chart crd.
+
+    =>CoreDNS, Metrics and Traefik by default.
+
+Installing k3s:
+================
+    =>curl -sfL https://get.k3s.io | sh
+
+How it is better than full kubernetes:
+=====================================
+    =>small binary, low resources, single master/node is possible, easy install/quick cluster launch.
+    =>Bundled dependencies.
+
+Application:
+============
+    =>Development environments, Test environments, Experiments, Learning.
+
+Namespaces:
+============
+    =>It is a kubernetes resource that allow you to group multiple resources.
+        E.g: Dev, Test, Prod.
+    =>K8S creates a default namespace named default.
+    =>Objects in one namespace can access objects in different one.
+    =>Deleting a namespace will delete all its child objects.
+    
+    =>To list all the namespace: kubectl get ns
+
+    Defining a namespace:
+    ====================
+    ->Namespace Definition:
+        =>You define a namespace.
+            yaml:
+                apiVersion: v1
+                kind: Namespace 
+                metadata:
+                    name: Prod 
+    ->Pod Definition:
+        =>You specify the namespace when defining objects.
+            Pod definition - yaml:
+                apiVersion: v1 
+                kind: pod 
+                metadata:
+                    name:myapp-pod
+                    namespace: prod 
+                spec:
+                    containers:
+                    - name: nginx-container
+                      image: nginx 
+
+    ->NetworkPolicy Definition:
+        apiVersion: networking.k8s.io/v1
+        kind: NetworkPolicy
+        metadata:
+            namespace: clientb
+            name: deny from other Namespaces
+        spec:
+            podSelector:
+                matchLabels:
+            ingress:
+            - from:
+                - podSelector: {}
+    
+    ->ResourceQuota definition:
+        apiVersion: v1
+        kind: ResourceQuota
+        metadata:
+            name: compute-quota 
+            namespace: prod 
+        spec:
+            hard:
+                pods: "10"
+                limits.cpu: "5"
+                limites.memory: 10Gi
+
+    Command cheat sheet:
+    ===================
+        =>kubectl get namespace / kubectl get ns = for getting all namespaces.
+        
+        change namespace:
+        =================
+        =>kubectl config set-context --current --namespace=[namespaceName] = set the current context to use a namespace. (to change namespace);
+
+        =>kubectl create ns <namespaceName> = to create a namespace.
+
+        =>kubectl delete ns <namespaceName> = to delete a namespace.
+
+        =>kubectl get pods --all-namespaces = list all pods in all namespaces.
+
+        To get pods from a specific namespace:
+        =====================================
+        =>kubectl get pods --namespace=kube-system || kubectl get pods -n kube-system 
+
+Nodes:
+=====
+Definition:
+    =>Nodes are physical or virtual machines. Together, they form a cluster.
+Master node:
+===========
+    =>The master node is also known as control plane.
+    control panel contains:
+        =>Kube-controller-manager.
+        =>cloud-controller-manager.
+        =>kube-apiserver=>etcd(key value datastore for cluster state data)
+        =>kube-scheduler.
+
+    Kube apiserver:
+    ===============
+        =>It exposes an REST interface.(using which all the kube cli tools interact)
+        =>save state to the datastore(etcd);
+        =>All clients interact with it, never directly to the datastore.
+
+    etcd:
+    ====
+        => Act as the cluster datastore for storing state.
+        => Key-value store.
+        => Not a database or a datastore for applications to use.
+    
+    Kube-control-manager:
+    =====================
+        =>The controller of controllers!
+        =>It runs controllers,
+            =>Node controller.
+            =>Replication controller.
+            =>Endpoints controller.
+            =>Service account & Token controllers.
+    
+    cloud-control-manager:
+    =======================
+        =>Interact with the cloud providers controllers,
+            =>Node:
+                ->For checking the cloud provider to determine if a node has been deleted in the cloud after it stops responding.
+            
+            =>Route:
+                ->For setting up routes in the underlying cloud infrastructure.
+            
+            =>Service:
+                ->For creating, updating and deleting cloud provider load balancers.
+            
+            =>Volume:
+                ->For creating, attaching, and mounting volumes, and interacting with the cloud provider to orchestrate volumes.
+    
+    kube-scheduler:
+        =>watches newly created pods that have no node assigned, and selects a node for them to run on.
+
+        =>Factors:
+            ->Individual and collective resource requirements.
+            ->Hardware/software/policy constraints.
+            =>Affinity and anti-affinity specifications.
+            =>Data locality.
+    Addons:
+        =>DNS, WebUI(dashboard), cluster level logging, container resource monitoring.
+
+Worker node:
+============
+    => Nodes running the containers is called worker node.
+
+    => when a worker node is added to the cluster, it automatically installs,
+        ->Kube-proxy
+        ->kubelet
+        ->container runtime
+        These are the services necessary to run pods, and they are managed by master node.
+    
+    kubelet:
+        =>Manage the pods lifecycle.
+        =>Ensures that the containers described in the pod specs are running and healthy.
+
+    kube-proxy:
+        =>A network proxy that manages network rules on nodes . All network traffic goes through it.
+    
+    container runtime:
+        => k8s supports several container runtimes.
+        =>Must implement the kubernetes container runtime interface:
+            ->Moby
+            ->containerd 
+            ->cri-O
+            ->Rkt 
+            ->Kata 
+            ->Virtlet
+
+Nodes pool:
+==========
+    =>A node pool is a group of virtual machines, all with same size.
+    =>A cluster can have multiple node pools,
+        =>These pools can host different sizes of VMs.
+        =>Each pool can be autoscaled independently from the other pools.
+
+Microk8s:
+ =>Install using snap from official website.
+ =>For dashboard: microk8s dashboard-proxy.
+
+Master and slaves:
+==================
+Creation:
+=========
+on master , microk8s add-node
+on another vm(worker), use the cmd from master (join cmd).
+
+
+Deletion:
+on slave, microk8s leave.
+on master and remaining nodes, microk8s remove-node name
+
+Label as master and slave:
+
+cmd:kubectl label node <nodeName> node-role.kubernetes.io/master=master
+
+To run a docker container:
+=========================
+    busybox:
+    =>kubectl run mykubes -it --image busybox -- sh
+    nginx:
+    =>kubectl run nginx --image nginx 
+
+    To make a thing run on a specific node:
+    ======================================
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+        name: mynginx
+        spec:
+        replicas: 1
+        selector:
+            matchLabels:
+            app: nginx
+        template:
+            metadata:
+            labels:
+                app: nginx
+            spec:
+            containers:
+            - name: nginx
+                image: nginx
+            nodeSelector:
+                kubernetes.io/hostname: ubuntu22lts
+
+k8s - replicas: 
+kubectl create deployment mynginx --image=nginx
+kubectl scale deployment mynginx --replicas=2
+
+or we can use spec->replicas in yaml service file.
+
+Things to study:
+
+    k8s = Master and slaves, Job, volumes,
+
     k8s = namespace - yaml file, service,clusterIp, nodeport, services, max-surge, replicaset, rolling update, pod health check
+refer: https://chat.openai.com/share/1233843c-26dd-4011-af17-ef45999ffc25
+
+17/4/24:
+Jenkins:
+========
+refer: https://www.youtube.com/watch?v=6YZvp2GwT0A&ab_channel=DevOpsJourney
+1.Install java on vm and host :  sudo apt install openjdk-21-jdk
+
+Introduction:
+    =>It is a automation platform, that helps to automate build,test,deploy the project.
+
+    =>To achieve CI/CD.= key feature.
+
+    =>Jenkins will build,test and deploy.
+
+    =>It uses plugin to extend its functionality.
+
+    =>Jenkins pipeline uses groovy language.
+
+Jenkins infrastructure:
+========================
+    1. Master server:
+        ->Controls pipelines
+        ->Schedules Builds 
+    2. Agents/Minions
+        ->Perform the Build.
+
+workflow: A developer pushes code to github, jenkins master will know there is a commit to repo, so schedules a build for a agent and the agent will build and test and deploy.
+
+Agent types:
+===========
+    ->Permanent Agents:
+        ->Dedicated server for running jobs.
+            Requirements:
+                ->Java.
+                ->Build tools (if needed)
+                ->ssh for connection.
+    
+    ->Cloud Agents:
+        ->Ephemeral/Dynamic agents spun up on demand.
+            Eg: docker, kubernetes, aws
+
+Build Types:
+============
+    ->Freestyle Build:
+    ==================
+        ->simplest method to create a build.
+        ->Feels like shell scripting
+
+    ->Pipelines:
+        ->Use the groovy syntax
+        ->pipelines are commonly broke down to different stages.
+            Eg:
+            stages  
+                stage('clone'){
+
+                }
+                stage('build'){
+
+                }
+                stage('test'){
+
+                }
+                stage('package'){
+
+                }
+                stage('deploy'){
+
+                }
+
+Jenkins web GUI walkthrough:
+    =>Dashboard=>manage nodes and clouds - this is where we add the agents and cloud .
+    =>Manage credential for storing api keys, ssh keys.
+
