@@ -134,7 +134,7 @@ https://developers.cloudflare.com/pages/framework-guides/deploy-a-react-site/
 5)Deployed elevato.ai with http = Damu developer
 ==============================
     Backend : 1 Frontend: 3
-    deploy codes:
+    deploy codes:scp <localFileName> ubuntu@3.26.93.135:/home/ubuntu/landing-page/
     ecosystem.config.js:
         ===================
             module.exports = {

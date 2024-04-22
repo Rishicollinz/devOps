@@ -2026,6 +2026,76 @@ Jenkins web GUI walkthrough:
     =>Dashboard=>manage nodes and clouds - this is where we add the agents and cloud .
     =>Manage credential for storing api keys, ssh keys.
 
- 
+22/4/24:
+=======
 
-    
+1.creating a simple freestyle job:
+==================================
+
+    =>Create a freestyle job. and explored the config.
+
+2.Workspace:
+=>In configure, in shell, create a test file and check in workspace
+workspace located: /var/lib/jenkins/workspace
+
+Setting up master and worker nodes on jenkins:
+==============================================
+
+1. Install jenkins on master node (a vm = u24) and java.
+2. Install java on worker node.
+
+3.Create a node on jenkins dashboard, with a remote directory, unique label and use this node only for label specified.
+4. On dashboard > manage jenkins > security > tcp = select random.
+5. Run the 3 commands with secret file on remote agent(ubuntu24vm).
+6. Now the master is connected with worker = check on nodes in dashboard.
+
+7.Create a new job and select a git repo with shell command "python3 first.py"
+8.On config of job, select restrict on label only node and type the nodelabel name.
+9.Now build and check on the console to see if it run on worker node.
+
+Trigger a build of jenkins using github webhook:
+================================================
+1. Jenkins job:
+    =>Make sure the git hub repo is added to job.
+    =>In jenkins job, change the build trigger to "GitHub hook trigger for GITScm polling" and select apply.
+
+2. Creating a webhook in github:
+
+    =>In repo settings, in webhooks,
+        =>In payload url: http://<jenkins dashboard IP:port>/github-webhook/
+        e.g: https://3694-2401-4900-6056-d797-9ee1-cf4e-b550-b140.ngrok-free.app/github-webhook/
+        here , the ip of jenkins dashboard is internal, so we use ngrok to create a global ip:
+            =>install ngrok : sudo snap install ngrok.
+
+            =>Go to dashboard of ngrok on web and get this cmd : ngrok config add-authtoken 2fSSkV4cZ6Vvh9PRNHrypabVtrq_LypxvXr9odmHPGvakGsP
+            =>run it on terminal.
+
+            ngrok http http://localhost:8080
+            =>for me ngrok didn't work on vm, so I port forwarded and used it on host.
+
+            =>Now add the ngrok forward ip to github webhook.
+
+3. Now any push to the repo will result in building of the same
+
+A jenkins job's build triggers the script:
+=========================================
+1. Have a .deploy file on root of the project.
+2. file content:
+    #!/bin/bash
+    echo "deploy file started"
+    export PATH=$PATH:/home/ubuntu/.nvm/versions/node/v20.12.2/bin/
+    cd /home/ubuntu/jenkins/workspace/Workerjob/viteC
+    rm -rf node_modules/
+    /home/ubuntu/.nvm/versions/node/v20.12.2/bin/npm i
+    /home/ubuntu/.nvm/versions/node/v20.12.2/bin/npm run build
+    #/home/ubuntu/.nvm/versions/node/v20.12.2/bin/npm install vite --save-dev
+    rm -rf dockerfile index.html node_modules package-lock.json package.json public/ src/ vite.config.js 
+    /home/ubuntu/.nvm/versions/node/v20.12.2/bin/npm i express
+    /home/ubuntu/.nvm/versions/node/v20.12.2/bin/pm2 delete ecosystem.config.js
+    /home/ubuntu/.nvm/versions/node/v20.12.2/bin/pm2 start ecosystem.config.js
+    echo "bash file completed"
+
+Build step shell cmd:
+chmod +x vite.deploy
+echo $PATH
+./vite.deploy
