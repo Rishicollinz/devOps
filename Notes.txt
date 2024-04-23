@@ -2111,4 +2111,15 @@ Things to do:
 5. deploy using bash but if curl req not 200 then revert the build to previous success and send email.
 6. docker cloud worker and master setup.
 7. health check on kubernetes for 5th step.
-1.Kubernetes:
+8. study kubernetes.
+
+1.Running the gcp server as worker node:
+========================================
+=>refer ssh way : https://devopscube.com/setup-slaves-on-jenkins-2/
+
+1. create ssh key generation on gcp server.
+2. add the public key to the authorized keys of the server.
+3. add the private key to the global credential of the jenkins.
+4. use the credential for the setup of the node.
+
+
