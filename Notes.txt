@@ -2099,3 +2099,16 @@ Build step shell cmd:
 chmod +x vite.deploy
 echo $PATH
 ./vite.deploy
+
+23/4/24:
+=======
+Things to do:
+=============
+1.Running the working node on gcp.
+2.jenkins using docker.
+3.pipeline and groovy.
+4. running worker on gcp.
+5. deploy using bash but if curl req not 200 then revert the build to previous success and send email.
+6. docker cloud worker and master setup.
+7. health check on kubernetes for 5th step.
+1.Kubernetes:
