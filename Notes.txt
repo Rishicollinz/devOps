@@ -2104,10 +2104,9 @@ echo $PATH
 =======
 Things to do:
 =============
-1.Running the working node on gcp.
-2.jenkins using docker.
-3.pipeline and groovy.
-4. running worker on gcp.
+1. Running the working node on gcp.(done);
+2. jenkins using docker.
+3. pipeline and groovy.
 5. deploy using bash but if curl req not 200 then revert the build to previous success and send email.
 6. docker cloud worker and master setup.
 7. health check on kubernetes for 5th step.
@@ -2123,3 +2122,15 @@ Things to do:
 4. use the credential for the setup of the node.
 
 
+2. Health check:
+================
+    =>Ways to get only the http request status code:
+        1. curl -s -o /dev/null -w "%{http_code}" http://www.example.org/
+        2. curl -I http://localhost:3000/ | head -n 1|cut -d$' ' -f2
+
+Migrating AWS services from one account to another:
+====================================================
+refer: https://aws.amazon.com/blogs/architecture/migrate-resources-between-aws-accounts/
+
+1. Ec2 eks ebs vpc region maranum.
+2. 
