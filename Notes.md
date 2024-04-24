@@ -32,3 +32,11 @@ __bold__
 - Item 2
   - Subitem 1
   - Subitem 2
+
+**link**
+
+[Google](https://www.google.com)
+
+**images**
+![Alt text](URL)
+
