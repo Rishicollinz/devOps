@@ -2,6 +2,7 @@
 ```
 code snippet
 ```
+---
 **headers**
 
 # Header 1
@@ -10,11 +11,14 @@ code snippet
 #### Header 4
 ##### Header 5
 ###### Header 6
-
+---
 **Emphasis**
 
 *italic*
 **bold**
 __bold__
-
 ---
+**horizontal rule**
+---
+
+\*literal asterisks\*
