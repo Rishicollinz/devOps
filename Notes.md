@@ -85,3 +85,5 @@ pipeline {
 ```
 
 jenk
+**Things to do:**
+- jenkins pipeline 
