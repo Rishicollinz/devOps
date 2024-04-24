@@ -83,7 +83,24 @@ pipeline {
     }
 }
 ```
+### Steps
+- Create a new job with pipeline
+- Enable poll scm in build triggers and use cron-syntax for scheduling it.
+- on pipeline, use "pipeline with scm" and provide git repo url
+- save to create a job.
+- Now on repo, create a jenkinsfile and add pipeline to it.
+- Now on every poll scheduled time, the jenkins job will check for the changes with git repository and if any, will start the build trigger.
 
-jenk
+### Jenkins bluestar:
+- It is a nice way to view the various jobs.
+- Download the plugin of bluestar.
+- open job and click on view on bluestar.
+- Explore blue star.
+
 **Things to do:**
 - jenkins pipeline 
+- jenkins healthcheck
+- jenkins using docker
+- kubernetes concepts
+- revise all devops
+- scope of data engineer
