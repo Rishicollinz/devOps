@@ -16,4 +16,8 @@
 3. `curl -X <http_methods>`
 4. `curl -H 'headername:value' <url>`
 5. `curl -d 'username=admin&password=1234' <url>`
-  
+6. ```curl -d <url>```
+
+```sudo apt update
+
+```
