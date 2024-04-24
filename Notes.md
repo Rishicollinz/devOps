@@ -24,3 +24,11 @@ __bold__
 \*literal asterisks\*
 
 > This is a blockquote.
+
+
+**lists**
+
+* Item 1
+* Item 2
+  * Subitem 1
+  * Subitem 2
