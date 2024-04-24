@@ -2111,6 +2111,7 @@ Things to do:
 6. docker cloud worker and master setup.
 7. health check on kubernetes for 5th step.
 8. study kubernetes.
+9. Data engineer.
 
 1.Running the gcp server as worker node:
 ========================================
@@ -2133,4 +2134,3 @@ Migrating AWS services from one account to another:
 refer: https://aws.amazon.com/blogs/architecture/migrate-resources-between-aws-accounts/
 
 1. Ec2 eks ebs vpc region maranum.
-2. 
