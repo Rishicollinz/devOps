@@ -18,6 +18,6 @@
 5. `curl -d 'username=admin&password=1234' <url>`
 6. ```curl -d <url>```
 
-```sudo apt update
-
+```
+sudo apt update
 ```
