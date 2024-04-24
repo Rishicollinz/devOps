@@ -1,8 +1,8 @@
-**This is after APRIL 24**
-
+**code snippet**
 ```
-sudo apt install
+code snippet
 ```
+**headers**
 
 # Header 1
 ## Header 2
@@ -10,3 +10,11 @@ sudo apt install
 #### Header 4
 ##### Header 5
 ###### Header 6
+
+**Emphasis**
+
+*italic*
+**bold**
+__bold__
+
+---
