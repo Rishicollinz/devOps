@@ -97,6 +97,95 @@ pipeline {
 - open job and click on view on bluestar.
 - Explore blue star.
 
+### Jenkins pipeline - Extended:
+###### Date : 25/4/24
+- Go to job, click on pipeline syntax
+- choose git and give git repo url and generate the syntax.
+- go to pipeline, and follow the below template.
+```
+pipeline{
+    agent any
+    stages{
+        stage('Git Checkout'){
+            steps{
+                https://github.com/Rishicollinz/pyrun.git
+                //add the generated syntax above
+            }
+        }
+    }
+}
+```
+### Pipeline concepts:
+**Pipeline:**
+- A pipeline is a user-defined model of a cd pipeline.
+- A pipeline's code defines your entire build process, which typically includes stages for building an application, testing it and delivering it.
+
+**Node:**
+- A node is a machine which is a part of the jenkins environment and is capable of executing a pipeline.
+
+**Stage:**
+- A stage block defines a conceptually distinct subset of tasks performed through the entire Pipeline (e.g. "Build", "Test" and "Deploy" stages), which is used by many plugins to visualize or present Jenkins Pipeline status/progress.
+
+**Step:**
+- A single task.
+- A step tells jenkins what to do at a particular point in time.
+
+## Pipeline syntax overview:
+There are two types of pipeline:
+- Declarative pipeline:
+    - Here, the overall block is pipeline.
+```
+pipeline {
+    agent any
+    options {
+        skipStagesAfterUnstable()
+    }
+    stages {
+        stage('Build') {
+            steps {
+                sh 'make'
+            }
+        }
+        stage('Test'){
+            steps {
+                sh 'make check'
+                junit 'reports/**/*.xml'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh 'make publish'
+            }
+        }
+    }
+}
+```
+
+- Scripted pipeline:
+    - The overall block is node and it runs on any available node.
+```
+node {
+    stage('Build') {
+        //
+    }
+    stage('Test') {
+        //
+    }
+    stage('Deploy') {
+        //
+    }
+}
+```
+#### Directive Generator:
+**url:**${YOUR_JENKINS_URL}/directive-generator.
+
+#### How to connect jenkin job with private repo:
+- Generate access token on github
+- create a global cred in jenkins as username(github acc) and password(Access token)
+- Use this inside the job.
+
+
+---
 **Things to do:**
 - jenkins pipeline 
 - jenkins healthcheck
@@ -104,3 +193,4 @@ pipeline {
 - kubernetes concepts
 - revise all devops
 - scope of data engineer
+
