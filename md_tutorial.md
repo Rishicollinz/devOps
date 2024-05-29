@@ -2,7 +2,7 @@
 ```
 code snippet
 ```
-**MD** 
+
 ---
 **headers**
 
