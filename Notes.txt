@@ -115,6 +115,14 @@ Modify an instance:
     ->set the CPU, RAM or disk of the instance.
     ->set the instance as primary.
 
+    $ multipass set name.cpus=4
+    $ multipass set name.disk=60G
+    $ multipass set name.memory=7G
+
+    primary:
+    
+    $ multipass set client.primary-name=<instance name>
+
 SSH:= secure socket shell.
 ====
 
@@ -201,18 +209,43 @@ SSH:
     2->place the public-key of the source in the destination's authorized key
     ->Access by this cmd: ssh ubuntu<user-name>@ip
 
-SSH port forward/thunneling:4
+SSH port forward/tunneling:4
 
     1.Follow the first 2 steps from the above.
     2.In the receiver's side, use this cmd: ssh -L 3001:localhost:80 ubuntu@188.17.0.5
+
+    Local Port Forwarding:
+
+        Use Case: Redirects traffic from a local port to a remote server.
+        Example: Accessing a database on a remote server through an SSH connection.
+        Command: ssh -L [LOCAL_PORT]:[REMOTE_HOST]:[REMOTE_PORT] [USER]@[SSH_SERVER]
+        Example Command: ssh -L 8080:localhost:3306 user@remote-server.com
+
+Remote Port Forwarding:
+
+        Use Case: Redirects traffic from a remote port to a local machine.
+        Example: Allowing a remote server to access a service on your local machine.
+        Command: ssh -R [REMOTE_PORT]:[LOCAL_HOST]:[LOCAL_PORT] [USER]@[SSH_SERVER]
+        Example Command: ssh -R 9090:localhost:80 user@remote-server.com
+
 
 scp: copies file between two networks
 
 Method 1:scp srinath@192.168.1.26:/home/srinath/my_practice/JavaScript.pdf .
 scp <Source@IP>:<source_folder> <destination_folder>
 
+
+2.from local->Remote
+scp local_file username@remote_host:/remote/directory/
+
 Method 2:scp array.js rishikeshb@192.168.1.63:.
 scp <fromhere_file> destination@IP:.
+
+config file:
+Host prasuna 
+  Hostname 192.168.1.52
+  port 22
+  User prasuna
 
 
 Git:
