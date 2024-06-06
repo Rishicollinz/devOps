@@ -194,3 +194,149 @@ node {
 - revise all devops
 - scope of data engineer
 
+---
+### Twelve Factor App:
+
+1. Codebase
+2. Dependencies
+3. Config
+4. Backing Services
+5. Build, Release, Run
+6. Processes
+7. Port Binding
+8. Concurrency
+9. Disposability
+10. Dev/Prod Parity
+11. Logs 
+12. Admin processes
+
+**Code Base:**
+- Every developer should have a centralised vcs for the project.
+
+**Dependencies:**
+- We should have a requirements file with the versions of the needed dependent libraries. Ex: requirements.txt in a python project.
+
+**Concurrency:**
+- We must build our application as independent, stateless app. so that we can implement and deploy the app anywhere.
+
+**Processes:**
+- No sticky session.
+- the session data should not be stored on local code and should be stored on backend process independently.
+
+**Backing service:**
+- S3, redis(caching service), smtp service, these are attach resources. The code shouldn't be changed for any specific service.
+
+**Config:**
+- Using .env file for the things which will be changed. 
+
+**Build,Release,Run**
+- Clear separation is required.
+
+**Port Binding**
+
+**Disposability:**
+- Should shutdown the app gracefully and in seconds.
+- Should use SIGTERM, SIGKILL
+
+**DEV/PROD parity:**
+- The gap between development and production should be very less.
+
+**Logs:**
+- fluentd is log managing system.
+- store in centralised location with a structure like json.
+- splunk
+
+**Admin Processes:**
+- Administrative process should be separate from the dev process and it should be one time.
+
+---
+### Time complexity:
+
+- T(n) = 2n^2+3n+1
+    - Drop lower order terms (i.e) - 3n and 1
+    - Drop all the constant multipliers (i.e) - 2 in 2n^2.
+
+    - T(n) = O(n^2)
+
+**Rules**
+
+1. Loop:
+```c
+for(i = 1; i<=n; i++){
+    x=y+z;//constant time = c
+}
+//T(n)=cn
+//Remove the c since it is constant.
+// T(n)=O(n)
+```
+
+2. Nested Loop:
+```c
+for(i=1;i<=n;i++){// n times
+    for(j=1;j<=n;j++){//n times
+        x=y+z; //constant time
+    }
+    //T(n)=C*n*n
+    //T(n)=O(n^2)
+}
+```
+
+3. Sequential statements:
+```c
+a=a+b; //constant time c1
+for(i=1;i<=n;i++){
+    x=y+z; //c2n
+}
+for(i=1;i<=n;i++){
+    c=d+e; //c3n
+}
+//T(n)=c1+c2n+c3n
+//T(n)=O(n)
+```
+
+4. Conditional statements:
+    - If there is if and else, then the 1 with the highest time complexity,should be taken.
+
+
+5. Order:
+    - O(1) < O(logn) < O(n) < O(nlogn) < O(n^c) < O(n!)
+
+
+### Space Complexity:
+
+**Amount of space:**
+- The no of variables multiplied by no of bytes for its data type is the space complexity of the program.
+
+### Big-O Notation:
+
+1. O(1):
+    - No matter how much the input size grows, the runtime is same. Most efficient.
+
+2. O(n):
+    - Linear time. The runtime increases the proportional to the input size.
+
+3. O(n^2):
+    - when we iterate through the array n times. then O(n^2)
+    - when we have 2 nested for loop
+
+4. O(m.n):
+    - when the matrix isn't square and we have to iterate through each element.
+
+5. O(logn):
+    - Binary Search and Binary Search Tree
+    - The no of times we divide the array by 2 and goes on till, it reaches 1.
+
+6. O(nlogn):
+    - Merge Sort
+    - Two Operations, where one is n and another is logn
+
+7. O(2^n):|| O(c^n)
+    - Recursion is generally comes here.
+
+8. O(sq.rt(n)):
+    - for factors.
+
+9. O(n!):
+    - Travelling salesman problem.
+
+---

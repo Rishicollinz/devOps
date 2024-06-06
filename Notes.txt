@@ -600,7 +600,8 @@ cmd: docker build -t ex5img . (this img name should be lowercase)
 15/3/24
 Docker tutorial:
 ===============
-
+Docker cli : https://docs.docker.com/reference/cli/docker/
+Docker concepts : https://docs.docker.com/guides/docker-concepts/the-basics/what-is-a-container/
 =>Docker uses container to run a project in an isolated environment.
 
 =>Normally, if a developer develops a project, they install several libs(i.e dependencies). so if someone who need to simulate the project, they have to install all the dependencies which is not fesible.
@@ -1544,7 +1545,7 @@ Architecture:
 ->Worker node (where the projects are deployed.)
 
 Flow:
-    =>Cluster > Node > Pod > Container.
+    =>Cluster > Namespace > Node > Pod > Container.
     
 Running kubernetes locally:
 ===========================
