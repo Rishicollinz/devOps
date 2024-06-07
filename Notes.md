@@ -340,3 +340,29 @@ for(i=1;i<=n;i++){
     - Travelling salesman problem.
 
 ---
+### Load Balancer using nginx
+
+**Solution:**
+
+- A portfolio application is running on two vms named fresh and freshV22 as a docker container respectively.
+
+- A host having nginx acts as a load balancer and using upstream reverse proxies to the 2 server.
+```
+http {
+    upstream backend {
+        server backend1.example.com;
+        server backend2.example.com;
+        server 192.0.0.1 backup;
+    }
+
+    server {
+        location / {
+            proxy_pass http://backend;
+        }
+    }
+}
+
+- Download jmeter.tgz file and extract it. GO to /bin and run ./jmeter
+- Create a thread group and add http request and view results in table and run it.
+- Monitor the progress using htop.
+```

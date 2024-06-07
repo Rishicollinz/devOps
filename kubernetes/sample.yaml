@@ -1,0 +1,18 @@
+name: local-cluster
+isActive: &chk true #var declaration
+good: "jdj"
+bad: 'dn'
+num: !!str 5
+list:
+  - dj
+  - dj
+  - jd
+multilinestring: >
+  Good is a bad
+  bad is good
+
+preservedString: |
+  a is b
+  b is a
+
+isGood: *chk # var usage
