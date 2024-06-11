@@ -29,7 +29,9 @@
 - Introduction to yaml = here
 - All about pods | Deploying Nginx to kubernetes = here
 - Introduction to pods, why, definition, scaling, pod communication = 8, 9
-
+- Pod - creation, Filtering, Details, Getting into pod, port forwarding, logs, Deletion = here
+- ReplicaSet - Syntax = here
+- Deployment - Scaling, Rollout, Rollback, Change-cause = here
 
 ### SET UP:
 
@@ -234,3 +236,249 @@ preserved_string: |
     - `kubectl run <pod_name> --image=<image_name>`
     - `kubectl run nginx-pod --image=nginx`
 
+- Remember and running various kubectl commands and managing them is not feasible, so we generally use config files of yaml.
+
+Folder: /home/rishikeshb/Documents/DevOps/kubernetes
+
+- Create a nginx-pod.yaml
+
+- In every kubernetes config files, these four attributes are mandatory,
+    - ```yaml
+        apiVersion:
+        kind:
+        metadata:
+        spec:
+        ```
+    
+    - apiVersion: 
+        - It is the version of the kubernetes api to create an object.
+        - It varies from resource to resource. For pods v1.
+        - check apiVersion using `kubectl api-resources | grep pods`
+        - o/p: 
+            - ```bash
+                pods                              po           v1                                     true         Pod
+                ```
+    - kind: 
+        - Kind is the type of object
+        - The last column is the kind which we got from `kubectl api-resources`
+    
+    - metadata:
+        - It is the information about the object like resource name, labels extra.
+        - We can filter the pods using the label.
+        ```yaml
+            name: nginx-pod
+            labels:
+                team: devops
+                app: nginxapp
+        ```
+    
+    - Spec:
+        - Spec varies from object to object.
+        - For pod, we should mention the list of containers that should go into the pods.
+        ```yaml
+            spec:
+                containers:
+                    - name: nginx-container
+                      image: nginx:latest
+                      ports:
+                        - containerPort: 80
+        ```
+**Deleting a Pod:**
+- `kubectl delete pod <pod_name>`
+
+**Filter pods**
+- with labels, we can filter the pods.
+- `kubectl get pods -l team=devops`
+- Multiple label filter:
+    - `❯  kubectl get pods -l team=devops,app=nginxapp`
+
+**Details of pod**
+- `kubectl get pods nginx-pod2 -o wide`
+- NAME         READY   STATUS    RESTARTS   AGE   IP           NODE                NOMINATED NODE   READINESS GATES
+- nginx-pod2   1/1     Running   0          20m   10.244.1.2   local-cluster-m02   <none>           <none>
+
+- Yaml format:
+    - `kubectl get pods nginx-pod2 -o yaml`
+
+- For more detailed information:
+    - `kubectl describe pod nginx-pod2`
+
+**Getting into pod:**
+- `kubectl exec -it <pod-name> --bash`
+    - '-it' means interactive terminal.
+
+- when there is multiple containers in a pod, we can specify which container should we go into.
+    - `kubectl exec -it <pod-name> -c <container-name> --bash`
+
+**port forwarding:**
+- we can't access the pod outside the node, we can only access it inside the node.
+- so port forward is used to access the pod outside the node.
+
+- `kubectl port-forward <pod-name> <local-port>:<container-port>`
+
+**Logs:**
+- `kubectl logs <pod-name>`
+
+**Deleting the pod:**
+- `kubectl delete -f <file-name>`
+
+### ReplicaSets:
+Features:
+    - Self Healing
+    - High availability
+    - Rollout and Rollback
+
+- ReplicaSets:
+- If a pod goes down, then a new pod with the same characteristics should replace it. It is known as replicas.
+- so, replicaset is used for this.
+
+- If the node goes down, the replicaset will create all the pods on the next working node.
+
+- syntax:
+    ```yaml
+    apiVersion: apps/v1
+    kind: ReplicaSet
+    metadata:
+        name: nginx-replicaset
+    spec:
+    replicas: 3
+    selector:
+        matchLabels:
+        app: nginxapp
+    template:
+        # this is same as the pod specification
+        metadata:
+        name: nginx-pod
+        labels:
+            app: nginxapp
+        spec:
+        containers:
+            - name: nginx-container
+            image: nginx:latest
+            ports:
+                - containerPort: 80
+    ```
+
+- Explanation:
+    - We can get replicaset apiVersion and kind from `kubectl api-resources`
+    - In metadata, just give a name for the replicaSet
+    - In spec, there should be replica, selector to matchlabels with the pod labels.
+    - In template, this is pod yaml file from metadata.
+
+- A replicaSet automatically creates pod and a deployment automatically creates a replicaSet
+
+### Deployments
+
+- Features:
+    - Rollout and Rollback
+
+- A deployment automatically creates a replicaSet and rs creates a pod.
+
+**Scaling:**
+1. Just change the replicas in the deployment file and apply it.
+2. Otherwise, use `kubectl scale --replicas=4 <deployment-name>`
+
+**Rollout:**
+1. Just change the image tag in deployment file and apply it.
+2. Any change in the template section of the deployment file creates a new replicaset.
+3. But the old replicaset is not deleted because during rollback, the same replicaset is used.
+4. By default, kubernetes stores the last 10 replicas.
+
+- changing the image tag directly : `kubectl set image <deployment-name> <container-name>=<image>:<tag>`
+
+**Rollout history:**
+- `kubectl rollout history <deployment-name>`
+
+**Change-cause:**
+- use `--record` flag during rollout to store the change cause.
+
+- Use annotations on deployment file.
+    ```yaml
+        annotations:
+    kubernetes.io/change-cause: "Replica increased to 3 and nginx to latest version."
+    ```
+
+**Rollback:**
+- `kubectl rollout undo <deployment-name> --to-revision=<revision-no>`
+- Refer: nginx-deployment,portfolio-deploy.yaml
+
+### Services:
+
+- Each pod has its own Private IP. so within a cluster, a pod can access another using pod ip but when a pod deleted or restarted, it ip changes. so it is not usable. so we need services.
+
+- when a service is created, a ip address is created to the services, users can call the service ip and service forwards the request to the pods.
+
+- Service takes care of load balancing.
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  ports: #mandatory
+    - port: 8080 # on which service will receive request
+      targetPort: 80 # port no of the container in the pod
+      
+```
+**Types:**
+1. clusterIP:
+    - This type of service exposes only to the internal of the cluster and can't be accessed outside.
+    - This is default and can be specified in spec by `type: ClusterIP`
+    - use labels with selector in spec for specifiying the pod.
+    - we can access it by going into a pod and using the service ip or the name of the service.
+    - ```yaml
+        apiVersion: v1
+        kind: Service
+        metadata:
+        name: nginx-service
+        spec:
+        selector:
+            app: nginxapp
+        ports: #mandatory
+            - port: 8080 # on which service will receive request
+            targetPort: 80 # port no of the container in the pod
+    ```
+
+2. Multi Port services:
+    - If we have multiple containers in a pod and each container exposes the services, then we can give ports as a list with a name.
+    ```yaml
+    ports: #mandatory
+    - name: proxy
+      port: 8080 # on which service will receive request
+      targetPort: 80
+    - name: frontend
+      port: 3000
+      targetPort: 3000
+    ```
+3. Node Port services:
+    - It exposes the pod on each node with a static port.
+    - we can access it outside the cluster using <nodeIP>:<nodeport>
+    - From outside the cluster, when one requests, it will go to nodeport -> clusterIP (imagination) -> pod
+    ```yaml
+    apiVersion: v1
+    kind: Service
+    metadata:
+    name: nginx-service
+    spec:
+    type: NodePort
+    selector:
+        app: nginxapp
+    ports: #mandatory
+        - port: 8080 # on which service will receive request
+        targetPort: 80 # port no of the container in the pod
+        nodePort: 30000
+    ```
+    - use type and nodeport
+    - get node ip and access the it with the nodePort:
+        - Node ip : `minikube ip -p local-cluster`
+        - use ` -n flag and specify the node, default goes to control-plane`
+    - use `minikube service <service-name> -p <cluster-name>`
+
+4. Load Balancer:
+    - Change the type to loadbalancer in config file
+    - LoadBalancer is a type of Kubernetes service that exposes the service externally using a cloud provider’s load balancer.
+    - When you create a LoadBalancer service, Kubernetes provisions an external load balancer from the cloud provider (e.g., AWS ELB, GCP Load Balancer, Azure Load Balancer).
+    - The external load balancer routes traffic to the backend NodePort services on the nodes.
+    - It provides a single external IP address that can be used to access the service from outside the cluster.
+- Refer: nginx-service, portfolio-service.yaml
+### Ingress
