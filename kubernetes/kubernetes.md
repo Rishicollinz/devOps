@@ -51,7 +51,7 @@
     - Path based routing
     - Host based routing
     - own root certificate
-    
+
 ### SET UP:
 
 1. Installed kubectl:https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/#install-using-native-package-management
@@ -637,4 +637,59 @@ spec:
 - If the routes doesn't match any of the routes, then it goes to default-http-backend. If we create a service in that name, we can manage the unexpected path.
 
 - To make the website the https secured, create your own root key and add it as a secret into the config files's spec.
+---
+### Namespace:
 
+**Definition:**
+- Namespaces in Kubernetes are a way to divide cluster resources between multiple users or teams. 
+- They provide a mechanism to manage different environments within the same cluster, such as development, staging, and production.
+
+- Namespace is a way to organization the resources of k8s objects.
+- Each namespace is logically separated from others but can communicate with one another.
+
+**Why:**
+- Avoiding conflicts:
+    - Suppose, we create a service named "nginx-service" and another person also creates a service with same name on the same cluster.
+    - Then, our service will get overridden with their service.
+
+- Restricting Access:
+    - we can restrict access to a namespace, so that only certain individual could use it.
+
+- Resource Limits:
+    - we can run a app in a namespace and limit the resource it can use.
+
+**Default Namespaces:**
+1. Default:
+    - Resources when we don't specify namespace explicitly.
+2. Kube-node-lease:
+    - contains lease resourcees to send heartbeats of node.
+    - so when a node is down, it can recreate another one.
+3. Kube-public:
+    - used for public resources.
+    - It is read only
+4. Kube-system:
+    - For objects created by kubernetes/
+
+**Syntax:**
+- Creation:
+    - `kubectl create namespace nginx`
+
+- ls namespaces:
+    - `kubectl get namespaces`
+
+- config file:
+    ```yaml
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+        name: nginx
+    ```
+
+- Deletion:
+    - `kubectl delete ns nginx`
+
+- usage:
+    - In the deployment or pod config file, in the metadata use `namespace: <ns-name>`
+
+- Namespace changing:
+    - 
