@@ -32,7 +32,26 @@
 - Pod - creation, Filtering, Details, Getting into pod, port forwarding, logs, Deletion = here
 - ReplicaSet - Syntax = here
 - Deployment - Scaling, Rollout, Rollback, Change-cause = here
+- Service types = here
+    - Diagram = 10
+    - Cluster Ip
+    - NodePort 
+    - Load Balancer
+    - Multi port services.
 
+- Ingress = here
+    - Diagram = 10
+    - Definition
+    - Key concepts
+    - Why
+    - Ingress rules
+    - Ingress Controller
+    - Setup
+    - Hands on
+    - Path based routing
+    - Host based routing
+    - own root certificate
+    
 ### SET UP:
 
 1. Installed kubectl:https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/#install-using-native-package-management
@@ -481,4 +500,141 @@ spec:
     - The external load balancer routes traffic to the backend NodePort services on the nodes.
     - It provides a single external IP address that can be used to access the service from outside the cluster.
 - Refer: nginx-service, portfolio-service.yaml
-### Ingress
+---
+### Ingress:
+
+**Definition:**
+- In Kubernetes, an Ingress is a resource that allows you to expose HTTP and HTTPS routes from outside the cluster to services within the cluster. 
+- It provides a way to manage external access to services in a Kubernetes cluster, typically HTTP and HTTPS, and can handle features like load balancing, SSL termination, and name-based virtual hosting.
+
+**Key Concepts:**
+1. Ingress Resource: A set of rules that define how to route external HTTP/HTTPS traffic to services within the cluster.
+2. Ingress Controller:  A controller that watches the Ingress resources and updates the load balancer accordingly.
+
+**Why:**
+- Using nodeport, we can expose a pods port to external services and we can also use loadbalancer.
+- But everytime, we use the load balancer service, the cloud providers will charge for the number of the load balancer. so we can use ingress and route to different service based on the requests.
+
+**Ingress Rules:**
+- Ingress has rules which defines which service should go based on the routes.
+
+**Ingress Controller:**
+- To process the ingress rules, we should have a ingress controller.
+- There are many third party ingress controller,
+    - HA-Proxy
+    - traefik
+    - Istio
+- Default ingress controller is nginx ingress controller which is maintained by kubernetes itself.
+
+**setup:**
+- `minikube addons enable ingress -p <cluster-name>`
+- Check using: `kubectl get po -A`
+- O/p: 
+    - ```bash
+        ingress-nginx   ingress-nginx-admission-create-b5wnm        0/1     Completed   0               63s
+        ingress-nginx   ingress-nginx-admission-patch-4xbfs         0/1     Completed   1               63s
+        ingress-nginx   ingress-nginx-controller-768f948f8f-lx85c   1/1     Running     0               63s
+    ```
+**Ingress View - Hands ON**
+refer:nginx-ingress.yaml
+
+- Path type:
+    - prefix:
+        - Checks only that the prefix matches.
+        - /app = /app/hello, /app, /app/ but not /apps
+    - exact:
+        - It should be exact match
+
+- Backend:
+    - here mention we the request should be forward to which service.
+    - service to the request map.
+
+- port:  It is the port number of service where the request is accepted.
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+spec:
+  rules:
+    - host: nginx-demo.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-service
+                port:
+                  number: 80      
+```
+
+- Go to /etc/hosts and add the node ip with the domain(nginx-demo.com) and check the website that it works.
+
+**Path based Routing:**
+```yaml
+#this ingress is for path based routing between nginx-service and portfolio-service
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: common-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1 
+spec:
+  rules:
+    - host: common.com
+      http:
+        paths:
+          - path: /nginx/(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-service
+                port:
+                  number: 80
+          - path: /(.*)
+            pathType: Prefix
+            backend:
+              service: 
+                name: portfolio-service
+                port:
+                  number: 8080
+```
+- Add common.com to node ip in /etc/hosts
+- annotations takes /nginx/nginx from the route and rewrites it to /nginx
+
+**Host based Routing:**
+```yaml
+#this ingress is for path based routing between nginx-service and portfolio-service
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: host-ingress
+spec:
+  rules:
+    - host: nginx-demo.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-service
+                port:
+                  number: 80
+    - host: common.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: 
+                name: portfolio-service
+                port:
+                  number: 8080
+```
+- If the routes doesn't match any of the routes, then it goes to default-http-backend. If we create a service in that name, we can manage the unexpected path.
+
+- To make the website the https secured, create your own root key and add it as a secret into the config files's spec.
+
