@@ -692,4 +692,12 @@ spec:
     - In the deployment or pod config file, in the metadata use `namespace: <ns-name>`
 
 - Namespace changing:
-    - 
+    - `kubectl config set-context --current --namespace=<ns-name>`
+
+**Communication between namespace:**
+- Go into a pod in different ns and try to communication a pod in another ns.
+    - curl todo-api-service:8080/api/todos
+    - this won't work
+    - use `curl todo-api-service.<nsname>:8080/api/todos`
+
+### Volumes:
