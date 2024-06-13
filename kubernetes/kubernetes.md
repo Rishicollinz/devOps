@@ -3,7 +3,8 @@
 **Architecture:**
 
 ![Kubernetes Architecture](https://kubernetes.io/images/docs/kubernetes-cluster-architecture.svg)
-
+[Pawan elthepu Github kubernetes resources](https://github.com/pelthepu/Kubernetes.git)
+---
 **Some Commands**
 1. To use various context || To get all the available context:
     - `kubectl config get-contexts`
@@ -51,6 +52,12 @@
     - Path based routing
     - Host based routing
     - own root certificate
+
+- Volumes:
+    - Definition = 11
+    - Problem statement = 11
+    - Types of volumes
+
 
 ### SET UP:
 
@@ -701,3 +708,123 @@ spec:
     - use `curl todo-api-service.<nsname>:8080/api/todos`
 
 ### Volumes:
+
+**Types of volumes:**
+***Persistent Volumes:***
+- setup:
+    - Create a deployment with mongo image - refer - mongo-deploy.yaml
+    - create a service for the deployment
+    - go to mongo compass, and connect with nodeip:nodeport with username and password
+
+- By default, the data is stored at the container level.
+
+1. emptyDir: refer: mongo-deploy.yaml
+    - It is a pod level volume. It is created when a pod is first created. 
+    - Containers in a same pod can share the pod.
+
+    - Creation:
+    - ```yaml
+        # Inside spec,
+        spec:
+            volumes:
+                - name: mongo-volume
+                  emptyDir: {}
+        ```
+    
+    - Usage:
+    - ```yaml
+        # In containers, for a list.
+        spec:
+            containers:
+                - image: ...
+                  volumeMounts:
+                    - mountPath: /data/db
+                      name: mongo-volume
+       ```
+
+    - If the data is stored on the pod level, other applications can't share the data and when the pod is destroyed, data is lost.
+
+2. hostPath: mongo-deploy-hostpath.yaml
+    - Hostpath is a node level volume. If a pod is deleted, the data is persisted.
+    - The pods inside a node can be share the data in the volume but the pods in another node can't access the data.
+    - If the node is deleted, the data are lost.
+
+- These above two volumes are ephemeral.
+
+***Persistent Volumes:***
+1. Persistent Volumes
+2. Persistent Volume Claims
+3. Storage Classes
+
+
+1. Persistent Volume: refer: pv.yaml
+    - It is a piece of storage in the cluster that has been provisioned by an administrator or dynamically provisioned using storage classes.
+    - It is a kubernetes resource like any other (pods,deployment)
+    
+    - output:
+        - ```yaml
+        NAME       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   VOLUMEATTRIBUTESCLASS   REASON   AGE
+        mongo-pv   5Gi        RWX            Retain           Available                          <unset>                          15s
+        ```
+    - Here status=available means it is still not bound.
+
+2. Persistent Volume Claim (PVC): refer pvc.yaml
+
+    - We can't directly use persistent volume in deploy, we should use persistent volume claim(pvc) and associate pvc with deployment.
+
+    - When we give accessModes and storage required for a pod in pvc, it refers the all the pv and select the suitable one.
+
+    - When a pvc is created, it automatically attached with pv.
+
+    - Output: 
+        ```yaml
+        ❯ kubectl get pvc
+        NAME        STATUS   VOLUME     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+        mongo-pvc   Bound    mongo-pv   5Gi        RWX                           <unset>                 19s
+
+        ~ 
+        ❯ kubectl get pv
+        NAME       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM               STORAGECLASS   VOLUMEATTRIBUTESCLASS   REASON   AGE
+        mongo-pv   5Gi        RWX            Retain           Bound    default/mongo-pvc                  <unset>                          10m
+        ```
+
+    - The status of the pv goes to bound because it is used by pvc.
+
+    - Usage: refer: mongo-deploy-pvc.yaml
+        - ```yaml
+            spec:
+                volumes:
+                - name: mongo-vol
+                persistentVolumeClaim:
+                    claimName: mongo-pvc
+            ```
+    - Creation of pvc and bounding it to pv doesn't work. Because, I think there is a problem with the pv config.
+
+3. Storage Class:
+    - Storage class is a kubernetes resources which we can use in pvc to dynamically create pv.
+    - It works:
+        - Syntax:
+            ```yaml
+            #storage class
+            apiVersion: storage.k8s.io/v1
+            kind: StorageClass
+            metadata:
+            name: demo-storage
+            provisioner: k8s.io/minikube-hohttps://github.com/pelthepu/Kubernetes.gitstpath
+            volumeBindingMode: Immediate
+            reclaimPolicy: Delete
+            ```
+        - usage in volumeclaim
+            ```yaml
+            apiVersion: v1
+            kind: PersistentVolumeClaim
+            metadata:
+            name: mongo-pvc-sc
+            spec:
+            accessModes:
+                - ReadWriteMany
+            resources:
+                requests:
+                storage: 5Gi
+            storageClassName: "demo-storage"
+            ```
