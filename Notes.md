@@ -366,3 +366,10 @@ http {
 - Create a thread group and add http request and view results in table and run it.
 - Monitor the progress using htop.
 ```
+
+### Kubernetes:
+- It is available on kubernetes folder
+
+### Helm:
+- It is available on helm folder
+

@@ -56,8 +56,13 @@
 - Volumes:
     - Definition = 11
     - Problem statement = 11
-    - Types of volumes
+    - Types of volumes = here
 
+- Statefulsets:
+    - Stateful vs stateless = 12
+    - Problem statement = 12
+    - Deployment vs statefulset = 13
+    
 
 ### SET UP:
 
@@ -828,3 +833,6 @@ spec:
                 storage: 5Gi
             storageClassName: "demo-storage"
             ```
+
+### Statefulsets:
+
