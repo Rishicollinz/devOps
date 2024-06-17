@@ -62,8 +62,37 @@
     - Stateful vs stateless = 12
     - Problem statement = 12
     - Deployment vs statefulset = 13
-    
+    - Hands-on = here
+    - statefulset deploy with sc = here
+    - replication between master and worker mongo pod using headless service = here
 
+- Configmaps: here
+    - syntax
+    - Normal usage
+    - usage as a file using volume and volumemount
+
+- Secret: here
+    - Definition
+    - Types 
+    - Usage
+
+- Probe: here
+    - Causes
+    - Probing mechanisms
+    - Probing customizations
+    - Liveness Probe
+    - Readiness Probe
+    - Startup Probe
+    - Best practices
+
+- Resource Managements = here
+    - Computing Resources
+    - Requests
+    - Limits
+    - Memory Management
+    - QoS
+    - Limit range
+    - Resource Quota
 ### SET UP:
 
 1. Installed kubectl:https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/#install-using-native-package-management
@@ -835,4 +864,296 @@ spec:
             ```
 
 ### Statefulsets:
+    - refer: /statefulsets/statefulset.yaml
+    - refer: /volumes/sc.yaml
+
+    - Only difference from normal deployment with storage class is using volumeclaimtemplate.
+
+    - one by one pod will be created.
+
+    - For each pod, a separate pvc is created and even if the pod is destroyed, the pvc is not deleted.
+
+    - Replicas is not directly created for the statefulsets, we have to initialize a replica inside the pod:(note this is not replicaset)
+        - ```json
+        rs.initiate(
+            {
+                _id: "myReplSet",
+                version: 1,
+                members:[
+                    {_id: 0, host: "mongodb0.example.net:27017},
+                     {_id: 1, host: "mongodb1.example.net:27017},
+                      {_id: 2, host: "mongodb2.example.net:27017}
+                ]
+            }
+        )
+        ```
+
+    - TO check `rs.status()` and primary(master pod) and secondary(worker pod) is set up automatically.
+    - rs.slaveOk:: - in the slave mongo pod to replicate the data from the master pod.
+    - We have to run a headless service for above replication operation. refer: /statefulsets/headless-service.yaml
+
+---
+### ConfigMaps:
+    - Whenever we develop any application, we should not hardcode properties which may change for each environment.
+    - we will use .env for this.
+
+**3 Ways to configure data:**
+- Passing Arguments
+- Configuration Files
+- Environment Variables
+
+- We shouldn't directly use values as env in pod definition.
+- Kubernetes provides two resources for this:   
+    - ConfigMap
+    - Secret
+
+**Definition:**
+- Configmap is a kubernetes object that lets us to store configuration which can be used in different applications.
+- Refer: /configMaps/mongo-configmap.yaml, /configMaps/mongo-secret.yaml, /statefulsets/statefulset.yaml
+
+- Syntax: 
+    - ```yaml
+    apiVersion: v1
+    kind: ConfigMap
+    metadata: 
+    name: mongodb-config
+    immutable: false
+    data:
+    username: admin1
+    mongodb.conf: |
+        storage:
+        dbPath: /data/db
+        replication:
+            replSetName: "rs0"
+    ```
+    - unlike other resources, here apiVersion,kind,metadata and data.
+    - Data is key value pair and we can also define file like mongodb.conf
+
+- usage:
+    - Normal data:
+        - ```yaml
+            env:
+                - name: MONGO_INITDB_ROOT_USERNAME
+                valueFrom:
+                    configMapKeyRef:
+                    key: username
+                    name: mongodb-config
+        ```
+    - file:
+        - use volume:
+        - ```yaml
+            volumes:
+            - name: mongodb-config
+              configMap:
+                name: mongodb-config
+                items:
+                - key: mongodb.conf
+                  path: mongodb.conf #this is name with which the file is created
+        ```
+        - If we don't give keys, then everything inside configmap goes as files.
+        - Then mount the volumes:
+            - ```yaml
+                volumeMounts:
+                    - name: mongo-volume
+                    mountPath: /data/db
+                    - name: mongodb-config
+                    mountPath: /etc/mongo
+            ```
+---
+### Secret:
+**Definition:**
+- Secret and configmaps creation and usage is same but secret are secure and can be encoded.
+- To encode `echo -n password | base64`
+- To decode `echo -n encoded_string | base64 --decode`
+- we can also go into pod, and type env to check the secret details.
+- Kind is secret.
+- Syntax:
+    - ```yaml
+            apiVersion: v1
+            kind: Secret
+            metadata: 
+            name: mongodb-secret
+            immutable: false
+            type: Opaque
+            data:
+            password: cGFzc3dvcmQxMjM=
+    ```
+- Types:
+    - Opaque = for arbitary user-defined data
+    - ```markdown
+        - Opaque                              = arbitrary user-defined data
+        - kubernetes.io/service-account-token = ServiceAccount token
+        - kubernetes.io/dockercfg             = serialized ~/.dockercfg file
+        - kubernetes.io/dockerconfigjson      = serialized ~/.docker/config.json file
+        - kubernetes.io/basic-auth            = credentials for basic authentication
+        - kubernetes.io/ssh-auth              = credentials for SSH authentication
+        - kubernetes.io/tls                   = data for a TLS client or server
+        - bootstrap.kubernetes.io/token       = bootstrap token data
+    ```
+
+- Usage:
+    - ```yaml
+        env:
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: mongodb-secret
+    ```
+    - Instead of configMapKey ref use secretKeyRef
+
+---
+### Probe:
+
+- Causes for the failure of the pod:
+    1. Bugs
+    2. Timeouts while communicating with external service
+    3. DB connection failure
+    4. OutOfMemory Issues
+    5. Etc..
+    - From outside, the pod may look like, it is running but due to internal errors, the functionalities are broken.
+
+    - A probe is complete checkup in general.
+    - In kubernetes, Investigates the pods if they're working correctly or not.
+
+    - Types:
+        1. Liveness
+        2. Readiness
+        3. Startup
+1. Liveness Probe:
+    - we can check whether the pod is alive or not using commands.
+
+    - ```yaml
+        livenessProbe:
+            exec:
+                command:
+                    - mongo
+                    - --eval
+                    - "db.adminCommand('ping')"
+    ```
+    - 0 = success, 1 = failure
+
+    - Probing Mechanisms:
+        - Exec:
+        - Http:
+            - ```yaml
+                httpGet:
+                    path:/health
+                    port: 8080
+            ```
+            - 200-399 = success or failure
+        - TCP:
+            - ```
+                tcpSocket:
+                    port:8080
+            ```
+            - success if port accepts traffic or failure.
+    
+    - Probing customization:
+        - Type|purpose|DefaultValue
+        - initialDelaySeconds|Delay to run the probe initially|0s
+        - periodSeconds|How frequently probe should execute after initial delay|10s
+        - timeoutSeconds|Timeout Period to mark as failure|1s
+        - failure/successThreshold|How many times to retry in case of failure|3times
+    
+2. ReadinessProbe:
+- It identifies when the container can handle the external service.
+- when readiness probe fails, then k8s removes the ip address of the probe from the endpoint of all services it belongs to.
+- Refer: statefulset.yaml
+- Same syntax as livenessprobe.
+
+3. Startup probe:
+    - It provides a way to delay liveness and readiness probe meaning only if the startup probe is successful, the liveness and readiness prob is checked.
+    - same syntax as liveness probe refer: statefulsets.yaml
+
+**Best practices:**
+- Ideal frequency
+- Lightweight
+- Correct Restart Policy
+- use only when needed
+- keep an eye on probes regularly
+
+---
+### Resource Management:
+1. Requesting CPU and memory
+2. Limiting CPU and Memory
+3. Quality of Service
+4. Setting min, max and default resources for pods in a namespace - LimitRange
+5. Limiting resources in a namespace-
+ResourceQuota
+
+**Computing Resources:**
+1.CPU:
+    - Measured a fraction of time.
+    - Ex: 200m(0.2CPU), 1CPU(1000m)
+    - Compressible = if full, can be throttled
+    - Throttles
+    - 1 cpu is equal to:
+        - 1 vCPU in AWS
+        - 1 core in gcp
+        - 1 vCore in Azure
+        - 1 Hyperthread on bare-metal
+
+2. Memory:
+    - Measured in Bytes
+    - Not compressible = once allocated, should wait for the process to release the resources.
+    - Terminates
+
+**Requests:**
+- Minimum
+- It is a way for the pod to request resources for itself, the k8s check the resources available on node and allocate the pod which satisfies it's request.
+- ```yaml
+    containers:
+        resources:
+            requests:
+                memory: "200Mi"
+                cpu: "1"
+    ```
+- If the resources not available, if not available, the pod creation is in pending state.
+
+**Limits:**
+- Maximum
+- Limits limits the resources used by the pod
+- syntax:
+    - ```yaml
+        resources:
+            limits:
+                memory: "2Gi"
+                cpu: "1"
+        ```
+
+- Refer: /resourceManagement/resources-demo-pod.yaml
+
+- If the pod uses more cpu than the limit, then the cpu rate is throttled but when the memory usage is high than the limit, then pod is restarted.
+
+**Memory Management:**
+- Kubernetes looks at the resources while allocation not the limits and allocates the pod based on the unallocated resources not actual usage.
+- Hence if the pod usage memory more than the node, then the pod should be killed. Here comes, the Quality of Service classes.
+
+**Quality of service:**
+- Kubernetes determines which pods to be killed based on three classes:
+1. BestEffort:
+    - When we don't define both request and limits, then the pod is defined as besteffort.
+    - Priority is low.
+2. Guaranteed:
+    - when requests and limits are equal.
+    - priority is high.
+3. Burstable:
+    - when the requests and limits doesn't match.
+    - priority is middle.
+- Killed order:
+    - BestEffort -> Burstable -> Guaranteed
+
+**Limit Range:**
+- It is a resources which check whether the other resources like pod, container, volumes within this limitrange.
+- It restricts at pod, container level
+
+- some times, we need to restrict at namespace level, that's where resourcequota comes into the picture
+
+**Resource Quota:**
+- It restricts at namespace level.
+- Refer: resource-quota-demo.yaml
+
+---
+### Advanced Scheduling:
 
