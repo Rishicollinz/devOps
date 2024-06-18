@@ -93,6 +93,9 @@
     - QoS
     - Limit range
     - Resource Quota
+
+- Advanced Scheduling:
+
 ### SET UP:
 
 1. Installed kubectl:https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/#install-using-native-package-management
@@ -1156,4 +1159,126 @@ ResourceQuota
 
 ---
 ### Advanced Scheduling:
+- refer: todo-ui-deploy.yaml
 
+1. nodeName:
+    - We can directly give name of the pods
+    - ```yaml
+        spec:
+        nodeName: local-cluster-m04
+        containers:
+            - name: todo-ui
+            image: pavanelthepu/todo-ui:1.0.2
+            ports:
+                - containerPort: 80 
+        ```
+    - refer: todo-ui-deploy.yaml
+
+2. nodeSelector:
+    - we can give labels to node and using nodeselector in config, we can allocate nodes.
+    - To add labels to node:
+        - `kubectl label node <node-name> key=value`
+    - To get labels for a node:
+        - `kubectl get nodes --show-labels`
+        - `kubectl get nodes -l team=devops`
+    - usage:
+    - ```yaml
+        spec: 
+            nodeSelector:
+                team: devops
+        ```
+3. Affinity:
+- Affinity is a alternative to node selector and can be used to handle complex situations.
+    - There are two types of affinity:
+        - nodeAffinity
+        - podAffinity
+    
+    1. NodeAffinity: todo-ui-deploy.yaml
+        - requiredDuringSchedulingIgnoredDuringExecution:
+            - requiredDuringScheduling means that the node should have that label during the scheduling but IgnoredDuringExecution means if the already running pods doesn't have the labels then they are not deleted.
+        
+        - preferredDuringSchedulingIgnoredDuringExecution:
+            - Here during scheduling, it checks for the node with required label but if not available, it allocates any node.
+            - we should definitely have a weight and preference.
+
+        - usage:
+            - ```yaml
+                requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                - matchExpressions:
+                    - key: "rank"
+                        operator: Lt
+                        values:
+                        - "0"
+                ```
+        - usage:
+            - ```yaml
+                preferredDuringSchedulingIgnoredDuringExecution:
+                    - weight: 40
+                    preference:
+                        matchExpressions:
+                        - key: "team"
+                        operator: In
+                        values: ["analytics"]
+                    - weight: 60
+                    preference:
+                        matchExpressions:
+                        - key: "rank"
+                        operator: Gt
+                        values: ["4"]
+                ```
+    
+    2. Pod Affinity: refer: todo-api-deploy.yaml
+        - Pod affinity is used to co-relate two pods
+        - syntax:
+            - ```yaml
+                spec:
+                    affinity:
+                        podAffinity:
+                        requiredDuringSchedulingIgnoredDuringExecution:
+                            - labelSelector:
+                                matchExpressions:
+                                - key: "app"
+                                    operator: In
+                                    values:
+                                    - "mongodb"
+                            topologyKey: kubernetes.io/hostname
+                ```
+            - Here, the matchexpressions checks for the pod with label app=mongodb and gets the matched pod's 
+            topologykey (i.e., node) and assigns this pod to that pod's node.
+    
+    3. PodAntiAffinity:
+        - pod anti affinity never allocates two pod in same node when they are related.
+        - syntax:
+            - ```yaml
+                podAntiAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                    - labelSelector:
+                        matchExpressions:
+                        - key: "app"
+                            operator: In
+                            values:
+                            - "mongodb"
+                    topologyKey: kubernetes.io/hostname
+                ```
+            - Here, the pod with the label are identified and this pod is never allocated to the node of the matched pod.
+
+**Taints and tolerations:**
+- Taints and tolerations is a another way to allocate pod and nodes.
+- Taints is applied to the node and tolerations is applied in pod level config.
+- Types:
+    - NoSchedule - Hard (Do not schedule pods if they can't tolerate)
+    - PreferNoSchedule - Soft (can be scheduled if no other nodes available)
+    - NoExecute - Strict (Delete running pods also if they can't tolerate newly added taint)
+
+- Syntax - `kubectl taint node <nodename> key=value:taintType`
+
+- Tolerations: refer: todo-ui-deploy.yaml
+    - Tolerations are applied at the pod config level.
+    - ```yaml
+        tolerations:
+        - key: "env"
+          operator: Equal 
+          value: "prod"
+          effect: NoSchedule
+        ```

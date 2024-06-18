@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-deploy-2
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: mongodb2
+  template:
+    metadata:
+      name: mongodb2
+      labels: 
+        app: mongodb2 
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values:
+                      - "mongodb"
+              topologyKey: kubernetes.io/hostname
+      #nodeSelector:
+        #team: devops
+      # affinity:
+      #   nodeAffinity:
+          # requiredDuringSchedulingIgnoredDuringExecution:
+          #   nodeSelectorTerms:
+          #     - matchExpressions:
+          #         - key: "rank"
+          #           operator: Lt
+          #           values:
+          #             - "0"
+          # preferredDuringSchedulingIgnoredDuringExecution:
+          #   - weight: 40
+          #     preference:
+          #       matchExpressions:
+          #       - key: "team"
+          #         operator: In
+          #         values: ["analytics"]
+          #   - weight: 60
+          #     preference:
+          #       matchExpressions:
+          #       - key: "rank"
+          #         operator: Gt
+          #         values: ["4"]
+      containers:
+        - name: mongodbcont
+          image: mongo 
+          args: ["--dbpath", "/data/db"]
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: "admin"
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: "password"
+          volumeMounts:
+            - mountPath: /data/db
+              name: mongo-vol
+      volumes:
+        - name: mongo-vol
+          emptyDir: {}
