@@ -104,6 +104,25 @@
     - podAntiAffinity = here
     - Taints and Tolerations = here
 
+- Auto-Scaling:
+    - Definition = 16
+    - Types of Auto-Scalers = 16
+    - HPA - Architecture = 16
+    - HPA - Hands on = here
+    - Formula for allocation = 17
+    - VPA - Architecture = 17
+    - VPA - Handson = 17
+    - Cluster Auto = here (only theory no implementation)
+
+- RBAC:
+    - Definition = here and 18
+    - Types = 18
+    - Creating User = here
+    - Role and Role binding = here
+    - Cluster role and cluster role binding = here
+    - Group = here
+    - Service-Account = here
+
 
 
 ### SET UP:
@@ -1370,3 +1389,117 @@ ResourceQuota
     - Aws -> EC2 Instance
     - Azure -> Virtual Machine
     - GCP -> Compute Engine
+---
+
+### RBAC:
+**Definition:**
+- RBAC stands for Role Based Access Control
+- In realtime, there are lot of kubernetes resources managed for an application. when there is no restriction, there may be a problem with access and restrictions.
+- So, we should implement role based
+
+**Creating user:**
+- We can't create create a user directly and authentication and authorization is handled by the api-server(k8s).
+
+- In local, the information related to the cluster is stored in ~/.kube/config file.
+
+- Any user should have a certificate signed by the certificate authority.
+
+- First, we should generate a user's private key with ssl:
+    - `openssl genrsa -out pavan.key 2048`
+- Now, generate the certificate signing request for the user with above key:
+    - `openssl req -new -key pavan.key -out pavan.csr -subj "/CN=pavan/0=dev/O=example.org"`
+    - CN = Common name, /O= user group and we can give multiple user group for a single user.
+
+- Now, this certificate signing req(csr) should be signed by the certificate authority.
+    - `sudo openssl x509 -CA ~/.minikube/ca.crt -CAkey ~/.minikube/ca.key -CAcreateserial -days 730 -i pavan.csr -out pavan.crt`
+
+- Now, we should add the user to the cluster:
+    - `kubectl config set-credentials pavan --client-certificate=pavan.crt --client-key=pavan.key`
+
+- Now, we should set the user:
+    - `kubectl config set-context <context-name> --cluster=<cluster-name> --user=pavan --namespace=default`
+
+- Now, user is created.
+
+**Role and Role-binding:**
+- In kubernetes, we can give permission by using role and role-binding.
+- Role: refer: ./rbac/role.yaml
+    - ```yaml
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: Role
+        metadata:
+        name: pod-reader
+        rules:
+        - apiGroups: [""] # "" indicates the core API group
+        verbs: ["get", "watch", "list"]
+        resources: ["pods", "pods/log"]
+        # resourceNames: ["nginx"]
+        ```
+    - apiGroups identifies which api group to target, this is necessary because multiple api groups can have same resources.
+    - "verbs" indicates the actions which can be done on the "resources"
+        - to see verbs `kubectl api-resources -o wide | grep pod`
+
+- Role binding: refer: role-binding.yaml
+    - In role binding, we connect a subject (user,usergroup, service account) with a role and it comes a rolebinding.
+    - ```yaml
+            apiVersion: rbac.authorization.k8s.io/v1
+            # This role binding allows user "pavan" to read pods in the "default" namespace.
+            # You need to already have a Role named "pod-reader" in that namespace.
+            kind: RoleBinding
+            metadata:
+            name: read-pods
+            subjects:
+            # You can specify more than one "subject"
+            - kind: User
+            name: pavan # "name" is case sensitive
+            apiGroup: rbac.authorization.k8s.io
+            - kind: ServiceAccount
+            name: test-sa
+            roleRef:
+            # "roleRef" specifies the binding to a Role / ClusterRole
+            kind: Role #this must be Role or ClusterRole
+            name: pod-reader # this must match the name of the Role or ClusterRole you wish to bind to
+            apiGroup: rbac.authorization.k8s.io
+            # roleRef:
+            #   kind: ClusterRole
+            #   name: secret-reader
+            #   apiGroup: rbac.authorization.k8s.io
+        ```
+- Role and role binding are namespaced meaning that the user will have access to the namespace where the role binding is defined.
+**Cluster Role and Cluster Role-Binding:**
+- It is at the cluster level.
+- It is same as role and role-binding.
+- refer: ./rbac/cluster-role.yaml && ./rbac/cluster-role-binding.yaml
+
+**Group:**
+- while created a user, we can give /0=usergroup.
+- using this in kind of subjects, we can give "Group"
+
+**Service Account:**
+- we gave access to the users for accessing the resources but what if the some projects have to access the accounts, we can't give the user details due to security revisions.
+- That's where, service accounts come into picture.
+- While creating the namespace, a default service account is created.
+
+- Getting the service account:
+    - `kubectl get sa`
+- Creating sa:
+    - `kubectl create sa test-sa`
+- we have to create a new service account
+- use it in pod: 
+    - ```yaml
+        apiVersion: v1
+        kind: Pod
+        metadata:
+        name: kubectl-pod
+        spec:
+        serviceAccount: test-sa
+        containers:
+        - name: kubectl
+            image: bitnami/kubectl
+            command: ["sleep", "20000"]
+        ```
+- then give it in role-binding.
+
+- `kubectl auth can-i create pods` - to check whether we can create pods.
+- `kubectl auth can-i creates pods --as="system:serviceaccount:default:test-sa"` - to check if the sa have permissions.
+---
