@@ -95,6 +95,16 @@
     - Resource Quota
 
 - Advanced Scheduling:
+    - Definition = 15
+    - k8s scheduler working = 15
+    - nodeName = here
+    - nodeSelector = here
+    - nodeAffinity = here
+    - podAffinity = here
+    - podAntiAffinity = here
+    - Taints and Tolerations = here
+
+
 
 ### SET UP:
 
@@ -1282,3 +1292,81 @@ ResourceQuota
           value: "prod"
           effect: NoSchedule
         ```
+---
+### Auto-Scaling:
+
+**Horizontal Pod Autoscaler - HPA:**
+- refer: ./kubernetes/autoscaling/...
+- It is used to increase or decrease (scale) the number of pods based on a particular metric.
+- Deploy a stress-api of pavan elthepu
+- create a service for it
+- create a hpa for it,
+    - ```yaml
+                #hpa = horizontal pod autoscaling
+        apiVersion: autoscaling/v2
+        kind: HorizontalPodAutoscaler
+        metadata:
+        name: utility-api
+        spec:
+        minReplicas: 1
+        maxReplicas: 5
+        metrics:
+            - resource:
+                name: cpu
+                target:
+                averageUtilization: 70
+                type: Utilization
+            type: Resource
+        scaleTargetRef:
+            apiVersion: apps/v1
+            kind: Deployment
+            name: utility-api
+        ```
+- create a traffic generator for load testing refer:traffic-generator.yaml
+
+- Go into traffic-generator pod
+
+- use wrk tool to generate requests to utility-api:
+    - Install wrk: `apk add wrk`
+    - cmd: `wrk -c 5 -t 5 -d 300s -H "Connection: Close" http://utility-api-service:8080/api/stress`
+
+- Check the whether hpa works or not:
+
+**Vertical Pod Autoscaler:**
+- refer:autoscaling/vpa.yaml
+- VPA increases the resources(spec) of the pod based on the load.
+- vpa is not directly available in kubectl resources and we have to clone a repo and install some files in it:
+    - `git clone https://github.com/kubernetes/autoscaler.git`
+    - go into that. and run `./vertical-pod-autoscaler/hack/vpa-up.sh/`
+    - apply the vpa and describe the vpa to see lower bound(req) and upper bound(limit).
+
+- More resources and not being used -> cost increase
+- Less resources and fully used -> performance Issues
+- syntax:
+    - ```yaml
+        apiVersion: autoscaling.k8s.io/v1
+        kind: VerticalPodAutoscaler
+        metadata:
+        name: utility-api
+        spec:
+        targetRef:
+            apiVersion: apps/v1
+            kind: Deployment
+            name: utility-api
+        updatePolicy:
+            updateMode: "Off"
+    ```
+- updateMode can be "Off","Auto","Initial".
+    - Auto will automatically increases the spec of the pod.
+    - off will give only recommendation
+    - Initial will only increase the newly created pod.
+
+**Cluster AutoScaler:**
+- when we don't have enough resources to run the pods in the node. then we have to increase the node. It can be done automatically.
+- It doesn't look at memory or cpu available, it only see the pending pod without resources and creates a new node.
+- If the utilization goes below 50%, the node is deleted.
+- It can't be done using minikube.
+- Cloud:
+    - Aws -> EC2 Instance
+    - Azure -> Virtual Machine
+    - GCP -> Compute Engine

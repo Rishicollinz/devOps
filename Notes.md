@@ -373,3 +373,24 @@ http {
 ### Helm:
 - It is available on helm folder
 
+### ZSH:
+**Install:**
+- `sudo apt install zsh` = base zsh
+- [ohmyzsh](ohmyz.sh)
+    - `sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"`
+    - for the onscreen installation and install
+**Plugin:**
+- Go to ~/.zshrc
+- check for plugin and add it in plugin by space
+- [BuiltInPlugin](https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins)
+- I have added git,gitfast,kubectl,docker,history-substring-search,copypath,web-search,
+
+**Custom Plugin:**
+- ZSH users:
+    - [github-zshUsers](https://github.com/zsh-users)
+    - [zsh-autocompletions](https://github.com/zsh-users/zsh-autosuggestions/tree/master)
+    - Installed by following install.md
+- powerlevel10k
+    - [github-powerlevel10k](https://github.com/romkatv/powerlevel10k?tab=readme-ov-file#oh-my-zsh)
+    - Installed by cloning it and adding it to zsh/custom-plugin by following the script in readme.md
+    - `p10k configure` - use this to configure the theme of zsh.
