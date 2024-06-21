@@ -123,7 +123,12 @@
     - Group = here
     - Service-Account = here
 
-
+- Daemonsets:
+    - Definition = 19
+    - Usecases = 19
+    - Prometheus Node exporter = 20
+    - Syntax and hands on = here
+    
 
 ### SET UP:
 
@@ -1503,3 +1508,53 @@ ResourceQuota
 - `kubectl auth can-i create pods` - to check whether we can create pods.
 - `kubectl auth can-i creates pods --as="system:serviceaccount:default:test-sa"` - to check if the sa have permissions.
 ---
+### Daemon Sets:
+- refer:./daemonset/daemonset.yaml
+- syntax:
+    - ```yaml
+        apiVersion: apps/v1
+        kind: DaemonSet
+        metadata:
+        name: node-exporter
+        spec:
+        selector:
+            matchLabels:
+            app: node-exporter
+        template:
+            metadata:
+            labels:
+                app: node-exporter
+            spec:
+            # nodeSelector:
+            #   kubernetes.io/os: linux
+            containers:
+            - name: node-exporter
+                image: prom/node-exporter:latest
+                args:
+                - --path.procfs=/host/proc
+                - --path.sysfs=/host/sys
+                ports:
+                - name: metrics
+                containerPort: 9100
+                volumeMounts:
+                - name: procfs
+                mountPath: /host/proc
+                readOnly: true
+                - name: sysfs
+                mountPath: /host/sys
+                readOnly: true
+            volumes:
+            - name: procfs
+                hostPath:
+                path: /proc
+            - name: sysfs
+                hostPath:
+                path: /sys
+        ```
+        - procfs and sysfs are two virtual file system in linux that allows users and programs to interact with the kernel and access various system information in a convenient way
+
+        - After applying this, whenever a new node is created, a new pod is automatically added to the node
+        - kube-proxy is running on every node and it is used for network communication to pods and services running on it.
+        - `kubectl delete ds <ds-name> --cascade=false` = this ensures that the pod which is running is not deleted. otherwise when a ds is deleted, the pod associated with it is also deleted.
+
+**Jobs and CronJobs:**
