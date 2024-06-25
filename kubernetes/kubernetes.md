@@ -129,7 +129,19 @@
     - Prometheus Node exporter = 20
     - Syntax and hands on = here
     
-
+- Jobs and Cronjobs:
+    - Definition = 20
+    - Lifecycle = 20
+    - backoffLimit = 21
+    - activeDeadlineSeconds = 21
+    - completions = 21
+    - parallelism = 21
+    - Definition = 22
+    - Usecases = 22
+    - ConcurrencyPolicy = 22
+    - Patch = 22
+    - Hands on = here
+    
 ### SET UP:
 
 1. Installed kubectl:https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/#install-using-native-package-management
@@ -1558,3 +1570,5 @@ ResourceQuota
         - `kubectl delete ds <ds-name> --cascade=false` = this ensures that the pod which is running is not deleted. otherwise when a ds is deleted, the pod associated with it is also deleted.
 
 **Jobs and CronJobs:**
+- jobs refer: jobs-cronjobs/job.yaml
+- cronjob refer: jobs-cronjobs/cronjob.yaml
